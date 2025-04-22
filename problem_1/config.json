@@ -1,0 +1,481 @@
+{
+    "base_url": "https://fbref.com/en/comps/9/",
+    "season_url_suffix": "Premier-League-Stats",
+    "csv_filename": "results.csv",
+    "min_minutes": 90,
+    "wait_timeout": 10,
+    "stats_config": {
+        "Name": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "player"
+        },
+        "Nation": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "nationality"
+        },
+        "Team": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "team"
+        },
+        "Position": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "position"
+        },
+        "Age": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "age"
+        },
+        "Playing Time: matches played": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "games"
+        },
+        "Playing Time: starts": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "games_starts"
+        },
+        "Playing Time: minutes": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "minutes"
+        },
+        "Performance: goals": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "goals"
+        },
+        "Performance: assists": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "assists"
+        },
+        "Performance: yellow cards": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "cards_yellow"
+        },
+        "Performance: red cards": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "cards_red"
+        },
+        "Expected: expected goals (xG)": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "xg"
+        },
+        "Expected: expedted Assist Goals (xAG)": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "xg_assist"
+        },
+        "Progression: PrgC": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "progressive_carries"
+        },
+        "Progression: PrgP": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "progressive_passes"
+        },
+        "Progression: PrgR": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "progressive_passes_received"
+        },
+        "Per 90 minutes: Gls": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "goals_per90"
+        },
+        "Per 90 minutes: Ast": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "assists_per90"
+        },
+        "Per 90 minutes: xG": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "xg_per90"
+        },
+        "Per 90 minutes: xGA": {
+            "url_suffix": "stats/",
+            "table_id": "stats_standard",
+            "data_stat": "xg_assist_per90"
+        },
+        "Performance: goals against per 90mins (GA90)": {
+            "url_suffix": "keepers/",
+            "table_id": "stats_keeper",
+            "data_stat": "gk_goals_against_per90"
+        },
+        "Performance: Save%": {
+            "url_suffix": "keepers/",
+            "table_id": "stats_keeper",
+            "data_stat": "gk_save_pct"
+        },
+        "Performance: CS%": {
+            "url_suffix": "keepers/",
+            "table_id": "stats_keeper",
+            "data_stat": "gk_clean_sheets_pct"
+        },
+        "Penalty Kicks: penalty kicks Save%": {
+            "url_suffix": "keepers/",
+            "table_id": "stats_keeper",
+            "data_stat": "gk_pens_save_pct"
+        },
+        "Standard: shoots on target percentage (SoT%)": {
+            "url_suffix": "shooting/",
+            "table_id": "stats_shooting",
+            "data_stat": "shots_on_target_pct"
+        },
+        "Standard: Shoot on Target per 90min (SoT/90)": {
+            "url_suffix": "shooting/",
+            "table_id": "stats_shooting",
+            "data_stat": "shots_on_target_per90"
+        },
+        "Standard: goals/shot (G/sh)": {
+            "url_suffix": "shooting/",
+            "table_id": "stats_shooting",
+            "data_stat": "goals_per_shot"
+        },
+        "Standard: average shoot distance (Dist)": {
+            "url_suffix": "shooting/",
+            "table_id": "stats_shooting",
+            "data_stat": "average_shot_distance"
+        },
+        "Total: passes completed (Cmp)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "passes_completed"
+        },
+        "Total: Pass completion (Cmp%)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "passes_pct"
+        },
+        "Total: progressive passing distance (TotDist)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "passes_progressive_distance"
+        },
+        "Short: Pass completion (Cmp%)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "passes_pct_short"
+        },
+        "Medium: Pass completion (Cmp%)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "passes_pct_medium"
+        },
+        "Long: Pass completion (Cmp%)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "passes_pct_long"
+        },
+        "Expected: key passes (KP)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "assisted_shots"
+        },
+        "Expected: pass into final third (1/3)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "passes_into_final_third"
+        },
+        "Expected: pass into penalty area (PPA)": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "passes_into_penalty_area"
+        },
+        "Expected: CrsPA": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "crosses_into_penalty_area"
+        },
+        "Expected: PrgP": {
+            "url_suffix": "passing/",
+            "table_id": "stats_passing",
+            "data_stat": "progressive_passes"
+        },
+        "SCA: SCA": {
+            "url_suffix": "gca/",
+            "table_id": "stats_gca",
+            "data_stat": "sca"
+        },
+        "SCA: SCA90": {
+            "url_suffix": "gca/",
+            "table_id": "stats_gca",
+            "data_stat": "sca_per90"
+        },
+        "GCA: GCA": {
+            "url_suffix": "gca/",
+            "table_id": "stats_gca",
+            "data_stat": "gca"
+        },
+        "GCA: GCA90": {
+            "url_suffix": "gca/",
+            "table_id": "stats_gca",
+            "data_stat": "gca_per90"
+        },
+        "Tackles: Tkl": {
+            "url_suffix": "defense/",
+            "table_id": "stats_defense",
+            "data_stat": "tackles"
+        },
+        "Tackles: TklW": {
+            "url_suffix": "defense/",
+            "table_id": "stats_defense",
+            "data_stat": "tackles_won"
+        },
+        "Challenges: Att": {
+            "url_suffix": "defense/",
+            "table_id": "stats_defense",
+            "data_stat": "tackles"
+        },
+        "Challenges: Lost": {
+            "url_suffix": "defense/",
+            "table_id": "stats_defense",
+            "data_stat": "challenges_lost"
+        },
+        "Blocks: Blocks": {
+            "url_suffix": "defense/",
+            "table_id": "stats_defense",
+            "data_stat": "blocks"
+        },
+        "Blocks: Sh": {
+            "url_suffix": "defense/",
+            "table_id": "stats_defense",
+            "data_stat": "blocked_shots"
+        },
+        "Blocks: Pass": {
+            "url_suffix": "defense/",
+            "table_id": "stats_defense",
+            "data_stat": "blocked_passes"
+        },
+        "Blocks: Int": {
+            "url_suffix": "defense/",
+            "table_id": "stats_defense",
+            "data_stat": "interceptions"
+        },
+        "Touches: Touches": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "touches"
+        },
+        "Touches: Def Pen": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "touches_def_pen_area"
+        },
+        "Touches: Def 3rd": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "touches_def_3rd"
+        },
+        "Touches: Mid 3rd": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "touches_mid_3rd"
+        },
+        "Touches: Att 3rd": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "touches_att_3rd"
+        },
+        "Touches: Att Pen": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "touches_att_pen_area"
+        },
+        "Take-Ons: Att": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "take_ons"
+        },
+        "Take-Ons: Succ%": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "take_ons_succ_pct"
+        },
+        "Take-Ons: Tkld%": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "take_ons_tackled_pct"
+        },
+        "Carries: Carries": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "carries"
+        },
+        "Carries: ProDist": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "carries_progressive_distance"
+        },
+        "Carries: ProgC": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "progressive_carries"
+        },
+        "Carries: 1/3": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "carries_into_final_third"
+        },
+        "Carries: CPA": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "carries_into_penalty_area"
+        },
+        "Carries: Mis": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "miscontrols"
+        },
+        "Carries: Dis": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "dispossessed"
+        },
+        "Receiving: Rec": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "passes_received"
+        },
+        "Receiving: PrgR": {
+            "url_suffix": "possession/",
+            "table_id": "stats_possession",
+            "data_stat": "progressive_passes_received"
+        },
+        "Performance: Fls": {
+            "url_suffix": "misc/",
+            "table_id": "stats_misc",
+            "data_stat": "fouls"
+        },
+        "Performance: Fld": {
+            "url_suffix": "misc/",
+            "table_id": "stats_misc",
+            "data_stat": "fouled"
+        },
+        "Performance: Off": {
+            "url_suffix": "misc/",
+            "table_id": "stats_misc",
+            "data_stat": "offsides"
+        },
+        "Performance: Crs": {
+            "url_suffix": "misc/",
+            "table_id": "stats_misc",
+            "data_stat": "crosses"
+        },
+        "Performance: Recov": {
+            "url_suffix": "misc/",
+            "table_id": "stats_misc",
+            "data_stat": "ball_recoveries"
+        },
+        "Aerial Duels: Won": {
+            "url_suffix": "misc/",
+            "table_id": "stats_misc",
+            "data_stat": "aerials_won"
+        },
+        "Aerial Duels: Lost": {
+            "url_suffix": "misc/",
+            "table_id": "stats_misc",
+            "data_stat": "aerials_lost"
+        },
+        "Aerial Duels: Won%": {
+            "url_suffix": "misc/",
+            "table_id": "stats_misc",
+            "data_stat": "aerials_won_pct"
+        }
+    },
+
+    "column_order": [
+        "Name",
+        "Nation",
+        "Team",
+        "Position",
+        "Age",
+        "Playing Time: matches played",
+        "Playing Time: starts",
+        "Playing Time: minutes",
+        "Performance: goals",
+        "Performance: assists",
+        "Performance: yellow cards",
+        "Performance: red cards",
+        "Expected: expected goals (xG)",
+        "Expected: expedted Assist Goals (xAG)",
+        "Progression: PrgC",
+        "Progression: PrgP",
+        "Progression: PrgR",
+        "Per 90 minutes: Gls",
+        "Per 90 minutes: Ast",
+        "Per 90 minutes: xG",
+        "Per 90 minutes: xGA",
+        "Performance: goals against per 90mins (GA90)",
+        "Performance: Save%",
+        "Performance: CS%",
+        "Penalty Kicks: penalty kicks Save%",
+        "Standard: shoots on target percentage (SoT%)",
+        "Standard: Shoot on Target per 90min (SoT/90)",
+        "Standard: goals/shot (G/sh)",
+        "Standard: average shoot distance (Dist)",
+        "Total: passes completed (Cmp)",
+        "Total: Pass completion (Cmp%)",
+        "Total: progressive passing distance (TotDist)",
+        "Short: Pass completion (Cmp%)",
+        "Medium: Pass completion (Cmp%)",
+        "Long: Pass completion (Cmp%)",
+        "Expected: key passes (KP)",
+        "Expected: pass into final third (1/3)",
+        "Expected: pass into penalty area (PPA)",
+        "Expected: CrsPA",
+        "Expected: PrgP",
+        "SCA: SCA",
+        "SCA: SCA90",
+        "GCA: GCA",
+        "GCA: GCA90",
+        "Tackles: Tkl",
+        "Tackles: TklW",
+        "Challenges: Att",
+        "Challenges: Lost",
+        "Blocks: Blocks",
+        "Blocks: Sh",
+        "Blocks: Pass",
+        "Blocks: Int",
+        "Touches: Touches",
+        "Touches: Def Pen",
+        "Touches: Def 3rd",
+        "Touches: Mid 3rd",
+        "Touches: Att 3rd",
+        "Touches: Att Pen",
+        "Take-Ons: Att",
+        "Take-Ons: Succ%",
+        "Take-Ons: Tkld%",
+        "Carries: Carries",
+        "Carries: ProDist",
+        "Carries: ProgC",
+        "Carries: 1/3",
+        "Carries: CPA",
+        "Carries: Mis",
+        "Carries: Dis",
+        "Receiving: Rec",
+        "Receiving: PrgR",
+        "Performance: Fls",
+        "Performance: Fld",
+        "Performance: Off",
+        "Performance: Crs",
+        "Performance: Recov",
+        "Aerial Duels: Won",
+        "Aerial Duels: Lost",
+        "Aerial Duels: Won%"
+    ]
+  }
+  
