@@ -1,0 +1,1203 @@
+--- Playing Time: minutes ---
+---------------------------
+
+Top 3 Player:
+          Name  Playing Time: minutes
+    David Raya                   2970
+Nathan Collins                   2970
+    Bernd Leno                   2970
+
+Bottom 3 Player:
+                Name  Playing Time: minutes
+       Harrison Reed                     93
+        Ayden Heaven                     95
+Jahmai Simpson-Pusey                     96
+
+==================================================
+
+--- Performance: goals ---
+------------------------
+
+Top 3 Player:
+          Name  Performance: goals
+ Mohamed Salah                  27
+Erling Haaland                  21
+Alexander Isak                  21
+
+Bottom 3 Player:
+             Name  Performance: goals
+  Aaron Cresswell                   0
+  Kostas Tsimikas                   0
+Kosta Nedeljković                   0
+
+==================================================
+
+--- Performance: assists ---
+--------------------------
+
+Top 3 Player:
+            Name  Performance: assists
+   Mohamed Salah                    18
+    Jacob Murphy                    11
+Mikkel Damsgaard                    10
+
+Bottom 3 Player:
+           Name  Performance: assists
+Aaron Cresswell                     0
+  Kobbie Mainoo                     0
+ Kieran Tierney                     0
+
+==================================================
+
+--- Performance: yellow cards ---
+-------------------------------
+
+Top 3 Player:
+       Name  Performance: yellow cards
+ Saša Lukić                         12
+Will Hughes                         11
+ João Gomes                         10
+
+Bottom 3 Player:
+                 Name  Performance: yellow cards
+Kiernan Dewsbury-Hall                          0
+        Rodrigo Gomes                          0
+          Ryan Fraser                          0
+
+==================================================
+
+--- Performance: red cards ---
+----------------------------
+
+Top 3 Player:
+              Name  Performance: red cards
+Myles Lewis-Skelly                       2
+   Bruno Fernandes                       2
+     Jack Stephens                       2
+
+Bottom 3 Player:
+            Name  Performance: red cards
+ Aaron Cresswell                       0
+      Matty Cash                       0
+Matthijs de Ligt                       0
+
+==================================================
+
+--- Expected: expected goals (xG) ---
+-----------------------------------
+
+Top 3 Player:
+          Name  Expected: expected goals (xG)
+ Mohamed Salah                           23.7
+Erling Haaland                           20.8
+Alexander Isak                           17.5
+
+Bottom 3 Player:
+            Name  Expected: expected goals (xG)
+Łukasz Fabiański                            0.0
+    Jason Steele                            0.0
+      Joe Lumley                            0.0
+
+==================================================
+
+--- Expected: expedted Assist Goals (xAG) ---
+-------------------------------------------
+
+Top 3 Player:
+         Name  Expected: expedted Assist Goals (xAG)
+Mohamed Salah                                   12.1
+  Cole Palmer                                    9.2
+Son Heung-min                                    8.2
+
+Bottom 3 Player:
+            Name  Expected: expedted Assist Goals (xAG)
+Łukasz Fabiański                                    0.0
+      David Raya                                    0.0
+   Sam Johnstone                                    0.0
+
+==================================================
+
+--- Progression: PrgC ---
+-----------------------
+
+Top 3 Player:
+         Name  Progression: PrgC
+  Jeremy Doku                176
+Mohamed Salah                138
+ Kaoru Mitoma                136
+
+Bottom 3 Player:
+               Name  Progression: PrgC
+   Łukasz Fabiański                  0
+Armel Bella Kotchap                  0
+               Neto                  0
+
+==================================================
+
+--- Progression: PrgP ---
+-----------------------
+
+Top 3 Player:
+           Name  Progression: PrgP
+Bruno Fernandes                264
+ Joško Gvardiol                241
+Bruno Guimarães                227
+
+Bottom 3 Player:
+            Name  Progression: PrgP
+Łukasz Fabiański                  0
+  Fraser Forster                  0
+ Filip Jørgensen                  0
+
+==================================================
+
+--- Progression: PrgR ---
+-----------------------
+
+Top 3 Player:
+         Name  Progression: PrgR
+Mohamed Salah                407
+ Bryan Mbeumo                300
+ Kaoru Mitoma                274
+
+Bottom 3 Player:
+            Name  Progression: PrgR
+Łukasz Fabiański                  0
+  Mads Hermansen                  0
+  Arijanet Muric                  0
+
+==================================================
+
+--- Per 90 minutes: Gls ---
+-------------------------
+
+Top 3 Player:
+         Name  Per 90 minutes: Gls
+  Jáder Durán                 0.99
+Donyell Malen                 0.99
+  Richarlison                 0.94
+
+Bottom 3 Player:
+             Name  Per 90 minutes: Gls
+  Aaron Cresswell                  0.0
+  Kostas Tsimikas                  0.0
+Kosta Nedeljković                  0.0
+
+==================================================
+
+--- Per 90 minutes: Ast ---
+-------------------------
+
+Top 3 Player:
+          Name  Per 90 minutes: Ast
+Tyrique George                 0.88
+    Danny Ings                 0.63
+   Bukayo Saka                 0.63
+
+Bottom 3 Player:
+           Name  Per 90 minutes: Ast
+Aaron Cresswell                  0.0
+  Kobbie Mainoo                  0.0
+ Kieran Tierney                  0.0
+
+==================================================
+
+--- Per 90 minutes: xG ---
+------------------------
+
+Top 3 Player:
+         Name  Per 90 minutes: xG
+ James Mcatee                0.85
+  Richarlison                0.83
+Marco Asensio                0.78
+
+Bottom 3 Player:
+            Name  Per 90 minutes: xG
+Łukasz Fabiański                 0.0
+         José Sá                 0.0
+   Julian Araujo                 0.0
+
+==================================================
+
+--- Per 90 minutes: xGA ---
+-------------------------
+
+Top 3 Player:
+           Name  Per 90 minutes: xGA
+ Tyrique George                 0.63
+Mykhailo Mudryk                 0.58
+ Philip Billing                 0.54
+
+Bottom 3 Player:
+            Name  Per 90 minutes: xGA
+Łukasz Fabiański                  0.0
+  Dean Henderson                  0.0
+   Billy Gilmour                  0.0
+
+==================================================
+
+--- Performance: goals against per 90mins (GA90) ---
+--------------------------------------------------
+
+Top 3 Player:
+            Name  Performance: goals against per 90mins (GA90)
+      Danny Ward                                          4.00
+Christian Walton                                          2.67
+   Alex McCarthy                                          2.60
+
+Bottom 3 Player:
+        Name  Performance: goals against per 90mins (GA90)
+Jason Steele                                          0.50
+  David Raya                                          0.82
+     Alisson                                          0.83
+
+==================================================
+
+--- Performance: Save% ---
+------------------------
+
+Top 3 Player:
+        Name  Performance: Save%
+        Neto                84.6
+Mark Travers                80.0
+  David Raya                76.5
+
+Bottom 3 Player:
+                   Name  Performance: Save%
+             Danny Ward                40.0
+Hákon Rafn Valdimarsson                50.0
+            Robin Olsen                55.6
+
+==================================================
+
+--- Performance: CS% ---
+----------------------
+
+Top 3 Player:
+                   Name  Performance: CS%
+Hákon Rafn Valdimarsson             100.0
+            Robin Olsen             100.0
+        Martin Dúbravka              50.0
+
+Bottom 3 Player:
+         Name  Performance: CS%
+Alex McCarthy               0.0
+  Alex Palmer               0.0
+Sam Johnstone               0.0
+
+==================================================
+
+--- Penalty Kicks: penalty kicks Save% ---
+----------------------------------------
+
+Top 3 Player:
+             Name  Penalty Kicks: penalty kicks Save%
+Caoimhín Kelleher                               100.0
+  Jordan Pickford                               100.0
+        Nick Pope                                50.0
+
+Bottom 3 Player:
+           Name  Penalty Kicks: penalty kicks Save%
+Filip Jørgensen                                 0.0
+  Sam Johnstone                                 0.0
+      Matz Sels                                 0.0
+
+==================================================
+
+--- Standard: shoots on target percentage (SoT%) ---
+--------------------------------------------------
+
+Top 3 Player:
+        Name  Standard: shoots on target percentage (SoT%)
+ Ryan Fraser                                         100.0
+Adam Webster                                         100.0
+  Willy Boly                                         100.0
+
+Bottom 3 Player:
+           Name  Standard: shoots on target percentage (SoT%)
+Aaron Cresswell                                           0.0
+Nathaniel Clyne                                           0.0
+    Álex Moreno                                           0.0
+
+==================================================
+
+--- Standard: Shoot on Target per 90min (SoT/90) ---
+--------------------------------------------------
+
+Top 3 Player:
+           Name  Standard: Shoot on Target per 90min (SoT/90)
+   Julio Enciso                                          3.37
+  Donyell Malen                                          2.64
+Luis Sinisterra                                          2.29
+
+Bottom 3 Player:
+           Name  Standard: Shoot on Target per 90min (SoT/90)
+Aaron Cresswell                                           0.0
+     James Hill                                           0.0
+   James Milner                                           0.0
+
+==================================================
+
+--- Standard: goals/shot (G/sh) ---
+---------------------------------
+
+Top 3 Player:
+              Name  Standard: goals/shot (G/sh)
+       John Stones                          1.0
+Myles Lewis-Skelly                          0.5
+       Axel Disasi                          0.5
+
+Bottom 3 Player:
+           Name  Standard: goals/shot (G/sh)
+Aaron Cresswell                          0.0
+   Julio Enciso                          0.0
+    Álex Moreno                          0.0
+
+==================================================
+
+--- Standard: average shoot distance (Dist) ---
+---------------------------------------------
+
+Top 3 Player:
+           Name  Standard: average shoot distance (Dist)
+Ibrahim Sangaré                                     32.0
+    Ryan Fraser                                     31.6
+Nathaniel Clyne                                     31.4
+
+Bottom 3 Player:
+          Name  Standard: average shoot distance (Dist)
+Kieran Tierney                                      2.6
+  Harry Clarke                                      4.5
+William Saliba                                      4.5
+
+==================================================
+
+--- Total: passes completed (Cmp) ---
+-----------------------------------
+
+Top 3 Player:
+           Name  Total: passes completed (Cmp)
+Virgil van Dijk                           2371
+ Joško Gvardiol                           2238
+ William Saliba                           2110
+
+Bottom 3 Player:
+           Name  Total: passes completed (Cmp)
+Albert Grønbaek                             13
+Odsonne Édouard                             17
+  Ali Al Hamadi                             25
+
+==================================================
+
+--- Total: Pass completion (Cmp%) ---
+-----------------------------------
+
+Top 3 Player:
+          Name  Total: Pass completion (Cmp%)
+William Saliba                           93.9
+    Nathan Aké                           93.9
+ Manuel Akanji                           93.9
+
+Bottom 3 Player:
+        Name  Total: Pass completion (Cmp%)
+   Matz Sels                           50.1
+George Hirst                           53.1
+        Beto                           56.9
+
+==================================================
+
+--- Total: progressive passing distance (TotDist) ---
+---------------------------------------------------
+
+Top 3 Player:
+           Name  Total: progressive passing distance (TotDist)
+   Mark Flekken                                          22467
+Jordan Pickford                                          21888
+Virgil van Dijk                                          17059
+
+Bottom 3 Player:
+            Name  Total: progressive passing distance (TotDist)
+   Evan Ferguson                                             11
+Chiedozie Ogbene                                             27
+   Ali Al Hamadi                                             29
+
+==================================================
+
+--- Short: Pass completion (Cmp%) ---
+-----------------------------------
+
+Top 3 Player:
+            Name  Short: Pass completion (Cmp%)
+Łukasz Fabiański                          100.0
+         Ederson                          100.0
+     Robin Olsen                          100.0
+
+Bottom 3 Player:
+         Name  Short: Pass completion (Cmp%)
+ Paul Onuachu                           63.8
+ George Hirst                           65.5
+Rodrigo Muniz                           67.6
+
+==================================================
+
+--- Medium: Pass completion (Cmp%) ---
+------------------------------------
+
+Top 3 Player:
+             Name  Medium: Pass completion (Cmp%)
+      Robin Olsen                           100.0
+      Alex Palmer                           100.0
+Caoimhín Kelleher                           100.0
+
+Bottom 3 Player:
+           Name  Medium: Pass completion (Cmp%)
+   George Hirst                            45.5
+           Beto                            49.2
+Albert Grønbaek                            50.0
+
+==================================================
+
+--- Long: Pass completion (Cmp%) ---
+----------------------------------
+
+Top 3 Player:
+            Name  Long: Pass completion (Cmp%)
+ Odsonne Édouard                         100.0
+     Patson Daka                         100.0
+Chiedozie Ogbene                         100.0
+
+Bottom 3 Player:
+            Name  Long: Pass completion (Cmp%)
+Marshall Munetsi                           0.0
+    Ross Stewart                           0.0
+   Evan Ferguson                           0.0
+
+==================================================
+
+--- Expected: key passes (KP) ---
+-------------------------------
+
+Top 3 Player:
+           Name  Expected: key passes (KP)
+Bruno Fernandes                         77
+    Cole Palmer                         76
+  Mohamed Salah                         75
+
+Bottom 3 Player:
+            Name  Expected: key passes (KP)
+Łukasz Fabiański                          0
+  Fraser Forster                          0
+ Filip Jørgensen                          0
+
+==================================================
+
+--- Expected: pass into final third (1/3) ---
+-------------------------------------------
+
+Top 3 Player:
+           Name  Expected: pass into final third (1/3)
+Virgil van Dijk                                    258
+ Joško Gvardiol                                    225
+Youri Tielemans                                    221
+
+Bottom 3 Player:
+            Name  Expected: pass into final third (1/3)
+Chiedozie Ogbene                                      0
+    Jason Steele                                      0
+  Tyrique George                                      0
+
+==================================================
+
+--- Expected: pass into penalty area (PPA) ---
+--------------------------------------------
+
+Top 3 Player:
+           Name  Expected: pass into penalty area (PPA)
+  Mohamed Salah                                      80
+Martin Ødegaard                                      77
+     Alex Iwobi                                      74
+
+Bottom 3 Player:
+            Name  Expected: pass into penalty area (PPA)
+Łukasz Fabiański                                       0
+ Martin Dúbravka                                       0
+  Massimo Luongo                                       0
+
+==================================================
+
+--- Expected: CrsPA ---
+---------------------
+
+Top 3 Player:
+            Name  Expected: CrsPA
+     Pedro Porro               26
+Antonee Robinson               26
+    Milos Kerkez               22
+
+Bottom 3 Player:
+            Name  Expected: CrsPA
+Łukasz Fabiański                0
+       Evanilson                0
+      Ezri Konsa                0
+
+==================================================
+
+--- Expected: PrgP ---
+--------------------
+
+Top 3 Player:
+           Name  Expected: PrgP
+Bruno Fernandes             264
+ Joško Gvardiol             241
+Bruno Guimarães             227
+
+Bottom 3 Player:
+            Name  Expected: PrgP
+Łukasz Fabiański               0
+  Fraser Forster               0
+ Filip Jørgensen               0
+
+==================================================
+
+--- SCA: SCA ---
+--------------
+
+Top 3 Player:
+           Name  SCA: SCA
+    Cole Palmer       177
+Bruno Fernandes       157
+  Mohamed Salah       144
+
+Bottom 3 Player:
+                Name  SCA: SCA
+                Neto         0
+          Danny Ward         0
+Jahmai Simpson-Pusey         0
+
+==================================================
+
+--- SCA: SCA90 ---
+----------------
+
+Top 3 Player:
+           Name  SCA: SCA90
+ Philip Billing        7.83
+ Luis Guilherme        6.52
+Kevin De Bruyne        6.24
+
+Bottom 3 Player:
+         Name  SCA: SCA90
+   Danny Ward         0.0
+   Joe Lumley         0.0
+Alex McCarthy         0.0
+
+==================================================
+
+--- GCA: GCA ---
+--------------
+
+Top 3 Player:
+            Name  GCA: GCA
+   Mohamed Salah        24
+     Bukayo Saka        22
+Mikkel Damsgaard        21
+
+Bottom 3 Player:
+            Name  GCA: GCA
+ Aaron Cresswell         0
+    Jakub Kiwior         0
+Jakub Stolarczyk         0
+
+==================================================
+
+--- GCA: GCA90 ---
+----------------
+
+Top 3 Player:
+          Name  GCA: GCA90
+   Solly March        1.70
+   Bukayo Saka        1.39
+Harvey Elliott        0.98
+
+Bottom 3 Player:
+            Name  GCA: GCA90
+ Aaron Cresswell         0.0
+    Jakub Kiwior         0.0
+Jakub Stolarczyk         0.0
+
+==================================================
+
+--- Tackles: Tkl ---
+------------------
+
+Top 3 Player:
+              Name  Tackles: Tkl
+Idrissa Gana Gueye           119
+      Daniel Muñoz           107
+ Noussair Mazraoui           100
+
+Bottom 3 Player:
+            Name  Tackles: Tkl
+Łukasz Fabiański             0
+ Bart Verbruggen             0
+     Ben Godfrey             0
+
+==================================================
+
+--- Tackles: TklW ---
+-------------------
+
+Top 3 Player:
+              Name  Tackles: TklW
+Idrissa Gana Gueye             70
+      Daniel Muñoz             68
+    Moisés Caicedo             61
+
+Bottom 3 Player:
+            Name  Tackles: TklW
+Łukasz Fabiański              0
+  Arijanet Muric              0
+ Odsonne Édouard              0
+
+==================================================
+
+--- Challenges: Att ---
+---------------------
+
+Top 3 Player:
+Empty DataFrame
+Columns: [Name, Challenges: Att]
+Index: []
+
+Bottom 3 Player:
+Empty DataFrame
+Columns: [Name, Challenges: Att]
+Index: []
+
+==================================================
+
+--- Challenges: Lost ---
+----------------------
+
+Top 3 Player:
+                  Name  Challenges: Lost
+            João Gomes                56
+Trent Alexander-Arnold                53
+       Elliot Anderson                51
+
+Bottom 3 Player:
+          Name  Challenges: Lost
+Mads Hermansen                 0
+   Robin Olsen                 0
+   Lloyd Kelly                 0
+
+==================================================
+
+--- Blocks: Blocks ---
+--------------------
+
+Top 3 Player:
+           Name  Blocks: Blocks
+ Nathan Collins              68
+        Murillo              66
+Tyrick Mitchell              61
+
+Bottom 3 Player:
+            Name  Blocks: Blocks
+Łukasz Fabiański               0
+  Antonín Kinský               0
+  Arijanet Muric               0
+
+==================================================
+
+--- Blocks: Sh ---
+----------------
+
+Top 3 Player:
+          Name  Blocks: Sh
+Nathan Collins          48
+   Dara O'Shea          45
+       Murillo          43
+
+Bottom 3 Player:
+            Name  Blocks: Sh
+Łukasz Fabiański           0
+       Nick Pope           0
+            Neto           0
+
+==================================================
+
+--- Blocks: Pass ---
+------------------
+
+Top 3 Player:
+               Name  Blocks: Pass
+Alexis Mac Allister            53
+    Tyrick Mitchell            49
+    Antoine Semenyo            48
+
+Bottom 3 Player:
+                   Name  Blocks: Pass
+       Łukasz Fabiański             0
+         Antonín Kinský             0
+Hákon Rafn Valdimarsson             0
+
+==================================================
+
+--- Blocks: Int ---
+-----------------
+
+Top 3 Player:
+             Name  Blocks: Int
+Aaron Wan-Bissaka           57
+ Antonee Robinson           56
+ Ryan Gravenberch           56
+
+Bottom 3 Player:
+            Name  Blocks: Int
+Łukasz Fabiański            0
+ Michail Antonio            0
+  Miguel Almirón            0
+
+==================================================
+
+--- Touches: Touches ---
+----------------------
+
+Top 3 Player:
+           Name  Touches: Touches
+Virgil van Dijk              2915
+ Joško Gvardiol              2804
+   Levi Colwill              2591
+
+Bottom 3 Player:
+           Name  Touches: Touches
+Albert Grønbaek                38
+Odsonne Édouard                45
+  Ali Al Hamadi                53
+
+==================================================
+
+--- Touches: Def Pen ---
+----------------------
+
+Top 3 Player:
+             Name  Touches: Def Pen
+     Mark Flekken              1261
+       Bernd Leno              1046
+Emiliano Martínez               990
+
+Bottom 3 Player:
+           Name  Touches: Def Pen
+    Emi Buendía                 0
+    Solly March                 0
+Raheem Sterling                 1
+
+==================================================
+
+--- Touches: Def 3rd ---
+----------------------
+
+Top 3 Player:
+           Name  Touches: Def 3rd
+   Mark Flekken              1569
+Jordan Pickford              1401
+     Bernd Leno              1296
+
+Bottom 3 Player:
+           Name  Touches: Def 3rd
+Odsonne Édouard                 4
+    Solly March                 5
+  Callum Wilson                 5
+
+==================================================
+
+--- Touches: Mid 3rd ---
+----------------------
+
+Top 3 Player:
+           Name  Touches: Mid 3rd
+Virgil van Dijk              1624
+ Joško Gvardiol              1412
+ Moisés Caicedo              1395
+
+Bottom 3 Player:
+        Name  Touches: Mid 3rd
+Jason Steele                 0
+  Danny Ward                 0
+        Neto                 0
+
+==================================================
+
+--- Touches: Att 3rd ---
+----------------------
+
+Top 3 Player:
+           Name  Touches: Att 3rd
+  Mohamed Salah               967
+   Bryan Mbeumo               851
+Bruno Fernandes               848
+
+Bottom 3 Player:
+            Name  Touches: Att 3rd
+Łukasz Fabiański                 0
+   Sam Johnstone                 0
+  Arijanet Muric                 0
+
+==================================================
+
+--- Touches: Att Pen ---
+----------------------
+
+Top 3 Player:
+           Name  Touches: Att Pen
+  Mohamed Salah               310
+Antoine Semenyo               174
+ Erling Haaland               170
+
+Bottom 3 Player:
+            Name  Touches: Att Pen
+Łukasz Fabiański                 0
+      Bernd Leno                 0
+    Jason Steele                 0
+
+==================================================
+
+--- Take-Ons: Att ---
+-------------------
+
+Top 3 Player:
+          Name  Take-Ons: Att
+Mohammed Kudus            177
+   Jeremy Doku            174
+ Morgan Rogers            145
+
+Bottom 3 Player:
+           Name  Take-Ons: Att
+ Conor Townsend              0
+    Ben Godfrey              0
+Cameron Burgess              0
+
+==================================================
+
+--- Take-Ons: Succ% ---
+---------------------
+
+Top 3 Player:
+Empty DataFrame
+Columns: [Name, Take-Ons: Succ%]
+Index: []
+
+Bottom 3 Player:
+Empty DataFrame
+Columns: [Name, Take-Ons: Succ%]
+Index: []
+
+==================================================
+
+--- Take-Ons: Tkld% ---
+---------------------
+
+Top 3 Player:
+             Name  Take-Ons: Tkld%
+      Emi Buendía            100.0
+       Lewis Dunk            100.0
+Christian Eriksen            100.0
+
+Bottom 3 Player:
+           Name  Take-Ons: Tkld%
+Aaron Cresswell              0.0
+   Jorge Cuenca              0.0
+    Jonny Evans              0.0
+
+==================================================
+
+--- Carries: Carries ---
+----------------------
+
+Top 3 Player:
+              Name  Carries: Carries
+    Joško Gvardiol              1824
+   Virgil van Dijk              1640
+Jan Paul van Hecke              1536
+
+Bottom 3 Player:
+           Name  Carries: Carries
+  Harry Toffolo                17
+Albert Grønbaek                18
+Odsonne Édouard                23
+
+==================================================
+
+--- Carries: ProDist ---
+----------------------
+
+Top 3 Player:
+              Name  Carries: ProDist
+Jan Paul van Hecke              6643
+    Joško Gvardiol              5508
+        Rúben Dias              5076
+
+Bottom 3 Player:
+           Name  Carries: ProDist
+Albert Grønbaek                15
+  Harry Toffolo                23
+ Massimo Luongo                25
+
+==================================================
+
+--- Carries: ProgC ---
+--------------------
+
+Top 3 Player:
+         Name  Carries: ProgC
+  Jeremy Doku             176
+Mohamed Salah             138
+ Kaoru Mitoma             136
+
+Bottom 3 Player:
+               Name  Carries: ProgC
+   Łukasz Fabiański               0
+Armel Bella Kotchap               0
+               Neto               0
+
+==================================================
+
+--- Carries: 1/3 ---
+------------------
+
+Top 3 Player:
+          Name  Carries: 1/3
+    Alex Iwobi            94
+Joško Gvardiol            91
+   Jeremy Doku            83
+
+Bottom 3 Player:
+             Name  Carries: 1/3
+ Łukasz Fabiański             0
+Emiliano Martínez             0
+    Stefan Ortega             0
+
+==================================================
+
+--- Carries: CPA ---
+------------------
+
+Top 3 Player:
+         Name  Carries: CPA
+Mohamed Salah           110
+  Jeremy Doku            80
+ Noni Madueke            75
+
+Bottom 3 Player:
+                Name  Carries: CPA
+     Aaron Cresswell             0
+Jahmai Simpson-Pusey             0
+    Jakub Stolarczyk             0
+
+==================================================
+
+--- Carries: Mis ---
+------------------
+
+Top 3 Player:
+         Name  Carries: Mis
+Mohamed Salah           102
+Morgan Rogers           100
+   Liam Delap            92
+
+Bottom 3 Player:
+            Name  Carries: Mis
+Łukasz Fabiański             0
+ Alphonse Areola             0
+    Mark Travers             0
+
+==================================================
+
+--- Carries: Dis ---
+------------------
+
+Top 3 Player:
+            Name  Carries: Dis
+  Mohammed Kudus            84
+Dejan Kulusevski            72
+ Bruno Guimarães            72
+
+Bottom 3 Player:
+           Name  Carries: Dis
+Aaron Cresswell             0
+    John Stones             0
+     Joe Lumley             0
+
+==================================================
+
+--- Receiving: Rec ---
+--------------------
+
+Top 3 Player:
+           Name  Receiving: Rec
+ Joško Gvardiol            2062
+Virgil van Dijk            1996
+   Levi Colwill            1902
+
+Bottom 3 Player:
+           Name  Receiving: Rec
+Albert Grønbaek              21
+Odsonne Édouard              26
+           Neto              28
+
+==================================================
+
+--- Receiving: PrgR ---
+---------------------
+
+Top 3 Player:
+         Name  Receiving: PrgR
+Mohamed Salah              407
+ Bryan Mbeumo              300
+ Kaoru Mitoma              274
+
+Bottom 3 Player:
+            Name  Receiving: PrgR
+Łukasz Fabiański                0
+  Mads Hermansen                0
+  Arijanet Muric                0
+
+==================================================
+
+--- Performance: Fls ---
+----------------------
+
+Top 3 Player:
+           Name  Performance: Fls
+     João Gomes                64
+Antoine Semenyo                64
+     Liam Delap                64
+
+Bottom 3 Player:
+            Name  Performance: Fls
+    Mark Flekken                 0
+Jakub Stolarczyk                 0
+     Robin Olsen                 0
+
+==================================================
+
+--- Performance: Fld ---
+----------------------
+
+Top 3 Player:
+           Name  Performance: Fld
+Bruno Guimarães                98
+  Matheus Cunha                63
+ James Maddison                63
+
+Bottom 3 Player:
+          Name  Performance: Fld
+Harvey Elliott                 0
+    Joe Lumley                 0
+Fraser Forster                 0
+
+==================================================
+
+--- Performance: Off ---
+----------------------
+
+Top 3 Player:
+                 Name  Performance: Off
+Dominic Calvert-Lewin                27
+           Chris Wood                24
+          Jamie Vardy                23
+
+Bottom 3 Player:
+           Name  Performance: Off
+Aaron Cresswell                 0
+  Julian Araujo                 0
+   Joël Veltman                 0
+
+==================================================
+
+--- Performance: Crs ---
+----------------------
+
+Top 3 Player:
+           Name  Performance: Crs
+    Pedro Porro               191
+   Bryan Mbeumo               171
+Bruno Fernandes               164
+
+Bottom 3 Player:
+                Name  Performance: Crs
+    Łukasz Fabiański                 0
+    Jakub Stolarczyk                 0
+Jahmai Simpson-Pusey                 0
+
+==================================================
+
+--- Performance: Recov ---
+------------------------
+
+Top 3 Player:
+           Name  Performance: Recov
+ Moisés Caicedo                 192
+Bruno Fernandes                 187
+  Ryan Christie                 182
+
+Bottom 3 Player:
+                   Name  Performance: Recov
+         Fraser Forster                   1
+Hákon Rafn Valdimarsson                   1
+             Danny Ward                   1
+
+==================================================
+
+--- Aerial Duels: Won ---
+-----------------------
+
+Top 3 Player:
+           Name  Aerial Duels: Won
+       Dan Burn                122
+Virgil van Dijk                109
+ Nathan Collins                103
+
+Bottom 3 Player:
+          Name  Aerial Duels: Won
+   Robin Olsen                  0
+        Antony                  0
+Miguel Almirón                  0
+
+==================================================
+
+--- Aerial Duels: Lost ---
+------------------------
+
+Top 3 Player:
+                Name  Aerial Duels: Lost
+          Chris Wood                 117
+Jean-Philippe Mateta                  95
+Jørgen Strand Larsen                  94
+
+Bottom 3 Player:
+           Name  Aerial Duels: Lost
+Filip Jørgensen                   0
+     David Raya                   0
+        José Sá                   0
+
+==================================================
+
+--- Aerial Duels: Won% ---
+------------------------
+
+Top 3 Player:
+            Name  Aerial Duels: Won%
+Jakub Stolarczyk               100.0
+     André Onana               100.0
+  Fraser Forster               100.0
+
+Bottom 3 Player:
+          Name  Aerial Duels: Won%
+Woyo Coulibaly                 0.0
+Miguel Almirón                 0.0
+     Welington                 0.0
+
+==================================================
+

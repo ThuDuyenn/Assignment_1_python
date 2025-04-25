@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from bs4 import BeautifulSoup
 import re
 import json
@@ -101,7 +100,6 @@ def scrape_fbref_data(driver, url, table_id, stats_to_extract, player_data, glob
 # --- Main Execution ---
 
 if __name__ == "__main__":
-    start_time = time.time()
     all_players_data = {}
 
     configs_by_url = {}
