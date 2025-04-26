@@ -1,0 +1,23 @@
+{
+  "output_folder": "OUTPUT",
+  "part1_results_filename": "../problem_1/results.csv", 
+  "transfer_value_output_filename": "player_transfer_values.csv",
+  "estimation_ready_data_filename": "estimation_data.csv",
+  "scraping": {
+    "transfer_url": "https://www.footballtransfers.com/us/players/uk-premier-league",
+    "player_table_selector": "tbody#player-table-body",
+    "player_row_selector": "tr",
+    "player_name_selector": "td.td-player div.text > a",
+    "team_name_selector": "td.td-team span.td-team__teamname",
+    "etv_selector": "td.text-center > span.player-tag",
+    "next_page_selector": "button.pagination_next_button:not([disabled])",
+    "wait_time": 15
+  },
+  "processing": {
+    "min_minutes_threshold": 900,
+    "part1_minutes_column": "Playing Time: minutes",
+    "part1_player_column": "Player",
+    "part1_team_column": "Team",
+    "target_variable": "TransferValue_EUR_Millions"
+  }
+}
