@@ -1,165 +1,165 @@
-# Import necessary libraries
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import json
+import numpy as np
 import os
-import numpy as np # Import numpy for checking numeric types
+import math
+from typing import List
 
-# --- Configuration ---
-CONFIG_FILE = 'config.json'
-# Define the specific statistics to plot based on user request and config file names
-STATS_TO_PLOT = [
-    'Performance: goals',
-    'Performance: assists',
-    'Standard: shoots on target percentage (SoT%)',
-    'Blocks: Int',
-    'Performance: Recov',
-    'Challenges: Att'
-]
+# --- Config ---
+OUTPUT_DIR = 'stat_histograms_real_data_relative' 
+TEAMS_PER_PLOT = 16
+DEFAULT_BINS = 15
+TEAM_COL = 'Team' 
+PLOT_STYLE = "whitegrid"
 
-# --- Helper Functions ---
+# --- Helpers ---
+def ensure_dir(path: str):
+    os.makedirs(path, exist_ok=True)
 
-def load_config(config_path):
-    """Loads the configuration from a JSON file."""
-    if not os.path.exists(config_path):
-        print(f"Error: Configuration file '{config_path}' not found.")
-        return None
-    try:
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-        print(f"Successfully loaded configuration from {config_path}.")
-        return config
-    except json.JSONDecodeError:
-        print(f"Error: Could not decode JSON from '{config_path}'.")
-        return None
-    except Exception as e:
-        print(f"An error occurred loading config: {e}")
-        return None
+def sanitize_filename(name: str, max_len: int = 100) -> str:
+    sanitized = "".join(c if c.isalnum() else "_" for c in name)
+    sanitized = "_".join(filter(None, sanitized.split('_')))
+    return sanitized.strip('_')[:max_len]
 
-def load_data(csv_path):
-    """Loads player data from a CSV file."""
-    if not os.path.exists(csv_path):
-        print(f"Error: Data file '{csv_path}' not found. Please ensure it's uploaded and accessible.")
-        return None
-    try:
-        df = pd.read_csv(csv_path)
-        print(f"Successfully loaded data from {csv_path}.")
-        # Basic check for required columns
-        if 'Team' not in df.columns:
-             print("Warning: 'Team' column not found. Team-specific plots cannot be generated.")
-        return df
-    except pd.errors.EmptyDataError:
-        print(f"Error: The file {csv_path} is empty.")
-        return None
-    except Exception as e:
-        print(f"An error occurred loading data: {e}")
-        return None
+# --- Plotting Functions ---
+def plot_overall_hist(df: pd.DataFrame, stat: str, **kwargs):
+    output_dir = kwargs.get('output_dir', OUTPUT_DIR)
+    bins = kwargs.get('bins', DEFAULT_BINS)
+    ensure_dir(output_dir)
 
-def preprocess_data(df, stats_list):
-    """Converts specified stat columns to numeric, handling errors."""
-    if df is None:
-        return None
-    df_processed = df.copy()
-    print("\n--- Preprocessing Data ---")
-    for stat in stats_list:
-        if stat in df_processed.columns:
-            # Store original dtype
-            original_dtype = df_processed[stat].dtype
-            # Attempt conversion to numeric, coercing errors to NaN
-            df_processed[stat] = pd.to_numeric(df_processed[stat], errors='coerce')
-            # Check if conversion was successful (at least some values are numeric)
-            if df_processed[stat].isnull().all() and not df[stat].isnull().all():
-                 print(f"Warning: Column '{stat}' could not be converted to numeric and is now all NaN. Original dtype: {original_dtype}.")
-            elif not pd.api.types.is_numeric_dtype(df_processed[stat]):
-                 print(f"Warning: Column '{stat}' is not numeric after attempted conversion. Original dtype: {original_dtype}")
-            # else:
-            #      print(f"Column '{stat}' successfully processed as numeric.") # Optional: success message
-        else:
-            print(f"Warning: Statistic column '{stat}' not found in the DataFrame.")
-    return df_processed
-
-
-def plot_specific_histograms(df, stats_list):
-    """Plots overall and per-team histograms for the specified list of statistics."""
-    if df is None or df.empty:
-        print("Cannot plot histograms because data is missing or empty.")
+    if stat not in df.columns or df[stat].dropna().empty:
         return
-    if 'Team' not in df.columns:
-        print("Warning: 'Team' column missing. Skipping team-specific plots.")
-        plot_team_hist = False
-    else:
-        plot_team_hist = True
 
+    plt.figure(figsize=(10, 6))
+    numeric_data = pd.to_numeric(df[stat], errors='coerce').dropna()
+    if numeric_data.empty:
+        return
 
-    print("\n--- Plotting Histograms ---")
-    for stat in stats_list:
-        if stat not in df.columns:
-            print(f"\nSkipping '{stat}': Column not found in data.")
-            continue
+    sns.histplot(numeric_data, bins=bins, kde=True)
+    plt.title(f'Overall Distribution: {stat}')
+    plt.xlabel(stat); plt.ylabel('Frequency')
+    plt.tight_layout()
 
-        # Check if the column is numeric before plotting
-        if not pd.api.types.is_numeric_dtype(df[stat]):
-             print(f"\nSkipping '{stat}': Column is not numeric.")
-             continue
+    filepath = os.path.join(output_dir, f"hist_overall_{sanitize_filename(stat)}.png")
+    plt.savefig(filepath)
+    plt.close()
 
-        # Drop rows where the current stat is NaN for plotting
-        stat_data = df.dropna(subset=[stat])
+def plot_team_hist(df: pd.DataFrame, stat: str, **kwargs):
+    output_dir = kwargs.get('output_dir', OUTPUT_DIR)
+    bins = kwargs.get('bins', DEFAULT_BINS)
+    teams_per_fig = kwargs.get('teams_per_fig', TEAMS_PER_PLOT)
+    team_col = kwargs.get('team_col', TEAM_COL)
+    ensure_dir(output_dir)
 
-        if stat_data.empty:
-            print(f"\nSkipping '{stat}': No valid data after dropping NaNs.")
-            continue
+    if stat not in df.columns or team_col not in df.columns:
+        return
 
-        print(f"\nPlotting '{stat}'...")
+    df_copy = df[[team_col, stat]].copy()
+    df_copy[stat] = pd.to_numeric(df_copy[stat], errors='coerce')
 
-        # 1. Overall Histogram
-        plt.figure(figsize=(8, 5))
-        sns.histplot(stat_data[stat], kde=True)
-        plt.title(f'Distribution of {stat} (All Players)')
-        plt.xlabel(stat)
-        plt.ylabel('Frequency')
-        plt.tight_layout()
-        plt.show()
+    if df_copy[stat].isnull().all():
+        return
 
-        # 2. Per-Team Histograms (only if 'Team' column exists and data is available)
-        if plot_team_hist and 'Team' in stat_data.columns:
-             teams = stat_data['Team'].unique()
-             if len(teams) > 0:
-                 # Use FacetGrid for a potentially large number of teams
-                 try:
-                    g = sns.FacetGrid(stat_data, col="Team", col_wrap=4, sharex=False, sharey=False, height=3, aspect=1.3)
-                    g.map(sns.histplot, stat, kde=False) # kde=False can be cleaner for many small plots
-                    g.fig.suptitle(f'Distribution of {stat} by Team', y=1.03) # Adjust title position
-                    g.set_titles("{col_name}") # Set individual plot titles to team names
-                    g.set_axis_labels(stat, "Frequency")
-                    plt.tight_layout(rect=[0, 0, 1, 0.98]) # Adjust layout
-                    plt.show()
-                 except Exception as e:
-                      print(f"  Could not generate team plots for '{stat}' using FacetGrid. Error: {e}")
-                      # Fallback or skip if FacetGrid fails
-             else:
-                  print(f"  No teams found for statistic '{stat}' after filtering.")
-        elif not plot_team_hist:
-             print(f"  Skipping team plots for '{stat}' as 'Team' column is missing.")
+    teams = sorted(df_copy[team_col].dropna().unique())
+    num_teams = len(teams)
+    if num_teams == 0: return
 
+    for i in range(math.ceil(num_teams / teams_per_fig)):
+        start, end = i * teams_per_fig, (i + 1) * teams_per_fig
+        current_teams = teams[start:end]
+        fig_data = df_copy[df_copy[team_col].isin(current_teams)].dropna(subset=[stat])
+
+        if fig_data.empty: continue
+
+        ncols = min(4, len(current_teams))
+        nrows = math.ceil(len(current_teams) / ncols)
+        fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 3.5, nrows * 3), squeeze=False)
+        axes = axes.flatten()
+
+        x_min, x_max = fig_data[stat].min(), fig_data[stat].max()
+        if x_min == x_max: x_min -= 0.5; x_max += 0.5
+
+        for j, team in enumerate(current_teams):
+            ax = axes[j]
+            team_data = fig_data[fig_data[team_col] == team][stat]
+            if not team_data.empty:
+                sns.histplot(team_data, bins=bins, kde=False, ax=ax)
+                ax.set_title(team, fontsize=9)
+                ax.set_xlabel(''); ax.set_ylabel('')
+                try: ax.set_xlim(x_min, x_max)
+                except ValueError: pass
+            else:
+                 ax.set_visible(False)
+
+        for k in range(len(current_teams), len(axes)): axes[k].set_visible(False)
+
+        fig.suptitle(f'{stat} Distribution by Team (Group {i+1})', fontsize=14)
+        fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+
+        filepath = os.path.join(output_dir, f"hist_teams_{sanitize_filename(stat)}_group_{i+1}.png")
+        try:
+            plt.savefig(filepath)
+            # print(f"Saved team group: {filepath}")
+        except Exception as e:
+            print(f"Error saving team group {filepath}: {e}")
+        finally:
+            plt.close(fig)
 
 # --- Main Execution ---
-# Load configuration
-config = load_config(CONFIG_FILE)
+if __name__ == '__main__':
+    sns.set_theme(style=PLOT_STYLE)
 
-if config and 'csv_filename' in config:
-    results_csv_path = config['csv_filename']
-    # Load data
-    df_players_raw = load_data(results_csv_path)
+    # Danh sách các chỉ số cần vẽ
+    stats_to_plot = [
+        'Performance: goals',
+        'Performance: assists',
+        'Standard: shoots on target percentage (SoT%)',
+        'Blocks: Int',
+        'Performance: Recov',
+        'Challenges: Att'
+    ]
 
-    if df_players_raw is not None:
-        # Preprocess data (convert specified columns to numeric)
-        df_players = preprocess_data(df_players_raw, STATS_TO_PLOT)
+    # --- Xác định đường dẫn tương đối đến file CSV ---
+    try:
+        # Lấy thư mục chứa file script hiện tại
+        current_script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Tạo đường dẫn tương đối: lên 1 cấp ('..'), vào 'problem_1', rồi đến 'results.csv'
+        csv_path = os.path.join(current_script_dir, '..', 'problem_1', 'results.csv')
+        print(f"Attempting to load data from relative path: {csv_path}")
+    except NameError:
+        # __file__ không được định nghĩa nếu chạy trong môi trường tương tác (vd: Jupyter)
+        # Sử dụng đường dẫn mặc định trong trường hợp này
+        csv_path = 'results.csv' # Hoặc một đường dẫn khác phù hợp
+        print(f"Warning: Could not determine script directory (__file__ not defined).")
+        print(f"Assuming CSV is at: {csv_path}")
 
-        # Plot the histograms for the specified statistics
-        plot_specific_histograms(df_players, STATS_TO_PLOT)
-    else:
-        print("Could not load player data. Cannot generate plots.")
-else:
-    print("Could not load configuration or 'csv_filename' key is missing in config.")
 
+    # --- Nạp dữ liệu từ CSV ---
+    try:
+        df = pd.read_csv(csv_path)
+        print("Data loaded successfully.")
+
+        # --- Thực hiện vẽ biểu đồ ---
+        print("\nPlotting overall histograms...")
+        for stat in stats_to_plot:
+            if stat in df.columns:
+                 plot_overall_hist(df, stat)
+            else:
+                 print(f"  Warning: Column '{stat}' not found in CSV, skipping overall plot.")
+
+
+        print("\nPlotting histograms by team...")
+        for stat in stats_to_plot:
+             if stat in df.columns:
+                 plot_team_hist(df, stat)
+             else:
+                 print(f"  Warning: Column '{stat}' not found in CSV, skipping team plot.")
+
+        print(f"\nDone. Check plots in '{OUTPUT_DIR}'.")
+
+    except FileNotFoundError:
+        print(f"Error: File not found at the calculated path '{csv_path}'.")
+        print("Please ensure the script's relative position to '../problem_1/results.csv' is correct.")
+    except Exception as e:
+        print(f"An error occurred during data loading or plotting: {e}")
