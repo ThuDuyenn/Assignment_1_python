@@ -10,8 +10,7 @@ na_values_list = ['N/a', 'n/a', 'NA', 'na', 'NaN', 'nan', '']
 df = pd.read_csv(csv_path, na_values=na_values_list)
  
 exclude_cols = [
-    'Name', 'Nation', 'Team', 'Position', 'Age',
-    'Playing Time: matches played', 'Playing Time: starts'
+    'Name', 'Nation', 'Team', 'Position', 'Age'
 ]
 
 stats_columns = [col for col in df.columns if col not in exclude_cols]
@@ -26,20 +25,20 @@ for col in stats_columns:
     all_row[f'Mean of {col}'] = overall_stats.loc[col, 'Mean']
     all_row[f'Std of {col}'] = overall_stats.loc[col, 'Std']
 
-team_stats = df.groupby('Team')[stats_columns].agg(['mean', 'std'])
+team_stats = df.groupby('Team')[stats_columns].agg(['median', 'mean', 'std'])
 
 team_results = pd.DataFrame(index=team_stats.index)
 
 for col in stats_columns:
-    team_results[f'Median of {col}'] = pd.NA 
+    team_results[f'Median of {col}'] = team_stats[(col, 'median')] 
     team_results[f'Mean of {col}'] = team_stats[(col, 'mean')]
     team_results[f'Std of {col}'] = team_stats[(col, 'std')]
 
-all_row.index.name = 'Identifier' # Đặt tên tạm cho index
+all_row.index.name = 'Identifier' 
 all_row = all_row.reset_index()
-all_row = all_row.rename(columns={'Identifier': ''}) # Đổi tên cột index thành rỗng theo mẫu
+all_row = all_row.rename(columns={'Identifier': ''}) 
 
-team_results.index.name = '' # Đặt tên cột index thành rỗng
+team_results.index.name = '' 
 team_results = team_results.reset_index()
 
 final_results = pd.concat([all_row, team_results], ignore_index=True)

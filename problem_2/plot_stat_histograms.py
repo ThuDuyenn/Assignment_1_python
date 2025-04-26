@@ -8,7 +8,7 @@ from typing import List
 
 # --- Config ---
 OUTPUT_DIR = 'stat_histograms_real_data_relative' 
-TEAMS_PER_PLOT = 16
+TEAMS_PER_PLOT = 20
 DEFAULT_BINS = 15
 TEAM_COL = 'Team' 
 PLOT_STYLE = "whitegrid"
@@ -72,7 +72,7 @@ def plot_team_hist(df: pd.DataFrame, stat: str, **kwargs):
 
         if fig_data.empty: continue
 
-        ncols = min(4, len(current_teams))
+        ncols = min(5, len(current_teams))
         nrows = math.ceil(len(current_teams) / ncols)
         fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 3.5, nrows * 3), squeeze=False)
         axes = axes.flatten()
@@ -98,19 +98,15 @@ def plot_team_hist(df: pd.DataFrame, stat: str, **kwargs):
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
 
         filepath = os.path.join(output_dir, f"hist_teams_{sanitize_filename(stat)}_group_{i+1}.png")
-        try:
-            plt.savefig(filepath)
-            # print(f"Saved team group: {filepath}")
-        except Exception as e:
-            print(f"Error saving team group {filepath}: {e}")
-        finally:
-            plt.close(fig)
+        
+        plt.savefig(filepath)
+
+        plt.close(fig)
 
 # --- Main Execution ---
 if __name__ == '__main__':
     sns.set_theme(style=PLOT_STYLE)
 
-    # Danh sách các chỉ số cần vẽ
     stats_to_plot = [
         'Performance: goals',
         'Performance: assists',
@@ -120,46 +116,14 @@ if __name__ == '__main__':
         'Challenges: Att'
     ]
 
-    # --- Xác định đường dẫn tương đối đến file CSV ---
-    try:
-        # Lấy thư mục chứa file script hiện tại
-        current_script_dir = os.path.dirname(os.path.abspath(__file__))
-        # Tạo đường dẫn tương đối: lên 1 cấp ('..'), vào 'problem_1', rồi đến 'results.csv'
-        csv_path = os.path.join(current_script_dir, '..', 'problem_1', 'results.csv')
-        print(f"Attempting to load data from relative path: {csv_path}")
-    except NameError:
-        # __file__ không được định nghĩa nếu chạy trong môi trường tương tác (vd: Jupyter)
-        # Sử dụng đường dẫn mặc định trong trường hợp này
-        csv_path = 'results.csv' # Hoặc một đường dẫn khác phù hợp
-        print(f"Warning: Could not determine script directory (__file__ not defined).")
-        print(f"Assuming CSV is at: {csv_path}")
+    current_script_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(current_script_dir, '..', 'problem_1', 'results.csv')
+    df = pd.read_csv(csv_path, encoding='utf-8')
+        
+    for stat in stats_to_plot:
+        plot_overall_hist(df, stat)
 
+    for stat in stats_to_plot:
+            plot_team_hist(df, stat)
 
-    # --- Nạp dữ liệu từ CSV ---
-    try:
-        df = pd.read_csv(csv_path)
-        print("Data loaded successfully.")
-
-        # --- Thực hiện vẽ biểu đồ ---
-        print("\nPlotting overall histograms...")
-        for stat in stats_to_plot:
-            if stat in df.columns:
-                 plot_overall_hist(df, stat)
-            else:
-                 print(f"  Warning: Column '{stat}' not found in CSV, skipping overall plot.")
-
-
-        print("\nPlotting histograms by team...")
-        for stat in stats_to_plot:
-             if stat in df.columns:
-                 plot_team_hist(df, stat)
-             else:
-                 print(f"  Warning: Column '{stat}' not found in CSV, skipping team plot.")
-
-        print(f"\nDone. Check plots in '{OUTPUT_DIR}'.")
-
-    except FileNotFoundError:
-        print(f"Error: File not found at the calculated path '{csv_path}'.")
-        print("Please ensure the script's relative position to '../problem_1/results.csv' is correct.")
-    except Exception as e:
-        print(f"An error occurred during data loading or plotting: {e}")
+    print(f"\nDone. Check plots in '{OUTPUT_DIR}'.")

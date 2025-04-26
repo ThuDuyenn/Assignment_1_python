@@ -238,7 +238,7 @@
         "Challenges: Att": {
             "url_suffix": "defense/",
             "table_id": "stats_defense",
-            "data_stat": "tackles"
+            "data_stat": "challenge_tackles_pct"
         },
         "Challenges: Lost": {
             "url_suffix": "defense/",
@@ -303,7 +303,7 @@
         "Take-Ons: Succ%": {
             "url_suffix": "possession/",
             "table_id": "stats_possession",
-            "data_stat": "take_ons_succ_pct"
+            "data_stat": "take_ons_won_pct"
         },
         "Take-Ons: Tkld%": {
             "url_suffix": "possession/",
