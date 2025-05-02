@@ -1,23 +1,33 @@
 {
-  "output_folder": "OUTPUT",
-  "part1_results_filename": "../problem_1/results.csv", 
-  "transfer_value_output_filename": "player_transfer_values.csv",
-  "estimation_ready_data_filename": "estimation_data.csv",
+  "paths": {
+    "part1_results_relative": "../problem_1/results.csv",
+    "output_folder": "OUTPUT",
+    "raw_data_filename": "raw_data.csv",
+    "transfer_value_output_filename": "player_transfer_values.csv",
+    "estimation_ready_data_filename": "estimation_data.csv"
+  },
   "scraping": {
     "transfer_url": "https://www.footballtransfers.com/us/players/uk-premier-league",
-    "player_table_selector": "tbody#player-table-body",
-    "player_row_selector": "tr",
-    "player_name_selector": "td.td-player div.text > a",
-    "team_name_selector": "td.td-team span.td-team__teamname",
-    "etv_selector": "td.text-center > span.player-tag",
-    "next_page_selector": "button.pagination_next_button:not([disabled])",
-    "wait_time": 15
+    "wait_time_seconds": 15,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"
+  },
+  "selectors": {
+    "player_table": "tbody#player-table-body",
+    "player_row": "tr",
+    "player_name": "td.td-player div.text > a",
+    "team_name": "td.td-team span.td-team__teamname",
+    "etv": "td.text-center > span.player-tag",
+    "age": "td.m-hide.age",
+    "position": "td.td-player span.sub-text.d-none.d-md-block",
+    "skill": "div.table-skill__skill",
+    "potential": "div.table-skill__pot",
+    "next_button_base": "button.pagination_next_button",
+    "next_page_enabled": "button.pagination_next_button:not([disabled])"
   },
   "processing": {
     "min_minutes_threshold": 900,
     "part1_minutes_column": "Playing Time: minutes",
-    "part1_player_column": "Player",
-    "part1_team_column": "Team",
-    "target_variable": "TransferValue_EUR_Millions"
+    "part1_player_column": "Name",
+    "target_variable_name": "TransferValue_EUR_Millions"
   }
 }

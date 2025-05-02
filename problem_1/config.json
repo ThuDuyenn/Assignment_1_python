@@ -70,7 +70,7 @@
             "table_id": "stats_standard",
             "data_stat": "xg"
         },
-        "Expected: expedted Assist Goals (xAG)": {
+        "Expected: expected Assist Goals (xAG)": {
             "url_suffix": "stats/",
             "table_id": "stats_standard",
             "data_stat": "xg_assist"
@@ -163,7 +163,7 @@
         "Total: progressive passing distance (TotDist)": {
             "url_suffix": "passing/",
             "table_id": "stats_passing",
-            "data_stat": "passes_progressive_distance"
+            "data_stat": "passes_total_distance"
         },
         "Short: Pass completion (Cmp%)": {
             "url_suffix": "passing/",
@@ -238,7 +238,7 @@
         "Challenges: Att": {
             "url_suffix": "defense/",
             "table_id": "stats_defense",
-            "data_stat": "challenge_tackles_pct"
+            "data_stat": "challenges"
         },
         "Challenges: Lost": {
             "url_suffix": "defense/",
@@ -411,7 +411,7 @@
         "Performance: yellow cards",
         "Performance: red cards",
         "Expected: expected goals (xG)",
-        "Expected: expedted Assist Goals (xAG)",
+        "Expected: expected Assist Goals (xAG)",
         "Progression: PrgC",
         "Progression: PrgP",
         "Progression: PrgR",

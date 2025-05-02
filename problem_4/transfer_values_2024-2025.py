@@ -1,344 +1,261 @@
-# main.py
 import os
 import re
 import time
 import traceback
-import logging
+import pandas as pd
+import random
 import json
 from contextlib import contextmanager
-import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.common import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import ( NoSuchElementException, TimeoutException, StaleElementReferenceException, ElementClickInterceptedException )
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from typing import Optional, Dict, Any, Tuple, Set, Generator 
+
+# --- Global Variables ---
+CONFIG: Optional[Dict[str, Any]] = None 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) 
 
 # --- Configuration Loading ---
-
 def load_config(config_path='config.json'):
-    """Loads configuration from a JSON file."""
-    try:
-        with open(config_path, 'r') as f:
+    abs_config_path = os.path.abspath(os.path.join(SCRIPT_DIR, config_path))
+    with open(abs_config_path, 'r') as f:
             config_data = json.load(f)
-
-        # Construct paths for files *within* the output folder
-        output_folder = config_data['output_folder']
-        config_data['transfer_value_output_file'] = os.path.join(output_folder, config_data['transfer_value_output_filename'])
-        config_data['estimation_ready_data_file'] = os.path.join(output_folder, config_data['estimation_ready_data_filename'])
-
-        # Use the path directly from JSON for part1 results
-        # Store it under a consistent key like 'part1_results_file'
-        config_data['part1_results_file'] = config_data['part1_results_filename'] # <--- MODIFIED LOGIC
-
-        return config_data
-    except FileNotFoundError:
-        logging.error(f"Configuration file not found at '{config_path}'")
-        return None
-    except json.JSONDecodeError:
-        logging.error(f"Error decoding JSON from '{config_path}'")
-        return None
-    except KeyError as e:
-        logging.error(f"Missing key in configuration file '{config_path}': {e}")
-        return None
-
-CONFIG = load_config()
-
-# Exit if config loading failed
-if CONFIG is None:
-    logging.critical("Failed to load configuration. Exiting.")
-    exit()
-
-
-# Logging Setup (remains the same)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-selenium_logger = logging.getLogger('selenium.webdriver.remote.remote_connection')
-selenium_logger.setLevel(logging.WARNING)
-
-
-# --- Helper Functions (remain the same) ---
-
+    return config_data
+    
+# --- WebDriver Context Manager ---
 @contextmanager
-def managed_webdriver(options: ChromeOptions):
-    # ... (no changes needed here) ...
+def managed_driver(config: Dict[str, Any]) -> Generator[Optional[WebDriver], None, None]:
     driver = None
-    try:
-        logging.info("Initializing WebDriver...")
-        driver = webdriver.Chrome(options=options)
-        yield driver
-        logging.info("WebDriver Context Yielded.")
-    except Exception as e:
-        logging.error(f"Failed to initialize or yield WebDriver: {e}")
-        traceback.print_exc()
-        raise
-    finally:
-        if driver:
-            try:
-                driver.quit()
-                logging.info("WebDriver closed.")
-            except Exception as e:
-                logging.error(f"Error closing WebDriver: {e}")
-
-def safe_get_text(element, selector: str, default='N/a') -> str:
-    # ... (no changes needed here) ...
+    options = ChromeOptions()
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument(f"user-agent={config['scraping']['user_agent']}")
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(45)
+    yield driver
+    driver.quit()
+    
+# --- Helper Functions ---
+def safe_get_text_transfer(element, selector):
     try:
         target = element.select_one(selector)
-        return target.get_text(strip=True) if target else default
-    except Exception as e:
-        logging.warning(f"Error extracting text with selector '{selector}': {e}")
-        return default
+        return target.get_text(strip=True) if target else 'N/a'
+    except Exception: return 'N/a'
 
+def safe_get_numeric(text_value):
+    if isinstance(text_value, str): text_value = text_value.replace(',', '')
+    return float(text_value)
 
-def clean_transfer_value(value_str: str, config: dict) -> float | None:
-    # ... (no changes needed here) ...
-    target_variable = config['processing']['target_variable'] # Example of using config
-
-    if not isinstance(value_str, str) or value_str == 'N/a':
+def clean_transfer_value(value_str):
+    if value_str == 'N/a' or not isinstance(value_str, str): 
         return None
-    value_str = re.sub(r'[€£$]', '', value_str.lower().strip())
-    multiplier = 1.0
-    if 'm' in value_str:
-        multiplier = 1_000_000
-        value_str = value_str.replace('m', '').strip()
-    elif 'k' in value_str:
-        multiplier = 1_000
-        value_str = value_str.replace('k', '').strip()
+    value_str = re.sub(r'[€£$]', '', value_str.strip()).replace(',', '').lower()
+    mult = 1_000_000.0 if 'm' in value_str else (1_000.0 if 'k' in value_str else 1.0)
+    value_str = value_str.replace('m', '').replace('k', '').strip()
+    return float(value_str) * mult / 1_000_000.0
+
+def get_next_page_button(driver, config: Dict[str, Any]): # Now accepts config
     try:
-        return (float(value_str) * multiplier) / 1_000_000
-    except ValueError:
-        logging.debug(f"Could not convert value: {value_str}")
-        return None
+        wait = WebDriverWait(driver, 5)
+        selector = config['selectors']['next_page_enabled']
+        next_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
+        return next_btn
+    except (NoSuchElementException, TimeoutException): return None
+    except Exception as e: return None
 
-# --- Core Logic (remain the same, will use updated CONFIG['part1_results_file']) ---
+def save_data(df: pd.DataFrame, full_path: str, output_folder: str) -> bool:
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    df.to_csv(full_path, index=False, encoding='utf-8-sig')
+    print(f"Successfully saved {len(df)} records to '{full_path}'")
+    return True
 
-def scrape_transfer_data(driver: WebDriver, config: dict) -> dict:
-    # ... (no changes needed here) ...
-    player_data = {}
+# --- Scraper Function ---
+PlayerData = Dict[Tuple[str, str], Dict[str, Any]]
+
+def scrape_transfer_data(driver: WebDriver, config: Dict[str, Any]) -> Optional[PlayerData]:
+    player_transfer_values: PlayerData = {}
     page_num = 1
-    # Access config values using dictionary keys
-    wait = WebDriverWait(driver, config['scraping']['wait_time'])
+    max_page_retries = 2
+    max_stale_retries = 3
+
     transfer_url = config['scraping']['transfer_url']
-    player_table_selector = config['scraping']['player_table_selector']
-    player_row_selector = config['scraping']['player_row_selector']
-    player_name_selector = config['scraping']['player_name_selector']
-    team_name_selector = config['scraping']['team_name_selector']
-    etv_selector = config['scraping']['etv_selector']
-    next_page_selector = config['scraping']['next_page_selector']
-    target_variable = config['processing']['target_variable']
+    wait_time = config['scraping']['wait_time_seconds']
+    selectors = config['selectors']
+    target_variable = config['processing']['target_variable_name']
 
-    logging.info(f"Starting transfer value scraping from: {transfer_url}")
-    try:
-        driver.get(transfer_url)
-    except Exception as e:
-        logging.error(f"Error navigating to initial URL {transfer_url}: {e}")
-        return {}
+    driver.get(transfer_url)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+    wait = WebDriverWait(driver, wait_time)
 
+    # --- Inside the scrape_transfer_data function ---
     while True:
-        logging.info(f"--- Scraping Page {page_num} ---")
         try:
-            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, f"{player_table_selector} {player_row_selector}")))
-            time.sleep(1)
+            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, selectors['player_table'])))
+            last_row_selector = f"{selectors['player_table']} {selectors['player_row']}:last-child"
+            WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, last_row_selector)))
+            time.sleep(0.75) 
 
             soup = BeautifulSoup(driver.page_source, 'html.parser')
-            player_table = soup.select_one(player_table_selector)
-            if not player_table:
-                logging.warning(f"Player table '{player_table_selector}' not found on page {page_num}. Stopping.")
-                break
+            table_body = soup.select_one(selectors['player_table'])
+           
+            if not table_body:
+                print(f"Error: Player table body selector '{selectors['player_table']}' not found on page {page_num}. Stopping scrape.")
+                break 
 
-            player_rows = player_table.select(player_row_selector)
-            logging.info(f"Found {len(player_rows)} player rows on page {page_num}.")
-            rows_processed_this_page = 0
+            rows = table_body.select(selectors['player_row'])
+            
+            if not rows:
+                print(f"Warning: No player rows found using selector '{selectors['player_row']}' on page {page_num}. Checking for next page.")
+               
+            # --- Extract data from rows ---
+            players_added_on_page = 0
+            for row_index, row in enumerate(rows):
+                player_name = safe_get_text_transfer(row, selectors['player_name'])
+                team_name = safe_get_text_transfer(row, selectors['team_name'])
+                
+                if 'N/a' in (player_name, team_name) or not player_name or not team_name:
+                    continue 
 
-            for row in player_rows:
-                player = safe_get_text(row, player_name_selector)
-                team = safe_get_text(row, team_name_selector)
-                etv = safe_get_text(row, etv_selector)
-
-                if player == 'N/a' or team == 'N/a':
-                    continue
-
-                player_key = (player, team)
-                if player_key not in player_data:
-                    player_data[player_key] = {
-                        'Player': player,
-                        'Team_TransferSite': team,
-                        'TransferValueRaw': etv,
-                        target_variable: clean_transfer_value(etv, config) # Pass config if needed
+                key = (player_name.strip(), team_name.strip())
+                
+                if key not in player_transfer_values:
+                    etv_str = safe_get_text_transfer(row, selectors['etv'])
+                    player_transfer_values[key] = {
+                        'Player': key[0], 
+                        'Team_TransferSite': key[1],
+                        'Age': safe_get_numeric(safe_get_text_transfer(row, selectors['age'])),
+                        'Position': safe_get_text_transfer(row, selectors['position']),
+                        'Skill': safe_get_numeric(safe_get_text_transfer(row, selectors['skill'])),
+                        'Potential': safe_get_numeric(safe_get_text_transfer(row, selectors['potential'])),
+                        'TransferValueRaw': etv_str,
+                        target_variable: clean_transfer_value(etv_str)
                     }
-                    rows_processed_this_page += 1
+                    players_added_on_page += 1
+                    
+            print(f"Successfully processed page {page_num}. Found {len(rows)} rows, added {players_added_on_page} new unique players.")
 
-            logging.info(f"Processed {rows_processed_this_page} new entries from page {page_num}.")
+        # --- Unified Exception Handling for Page Processing ---
+        except (TimeoutException, StaleElementReferenceException, NoSuchElementException, Exception) as e_page:
+            return player_transfer_values 
 
-            # Pagination
-            try:
-                next_page_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, next_page_selector)))
-                logging.info("Clicking 'Next page' button...")
-                driver.execute_script("arguments[0].click();", next_page_button)
-                time.sleep(2)
-                page_num += 1
-            except (NoSuchElementException, TimeoutException):
-                logging.info("No more clickable 'Next page' button found. Ending scraping.")
-                break
+        next_btn = get_next_page_button(driver, config)
 
-        except TimeoutException:
-             logging.warning(f"Timeout waiting for table elements on page {page_num}. Stopping.")
-             break
-        except Exception as e:
-            logging.error(f"Unexpected error during scraping on page {page_num}: {e}")
-            traceback.print_exc()
-            break
+        if not next_btn:
+            break 
 
-    logging.info(f"Finished scraping. Total unique (Player, Team) combinations found: {len(player_data)}")
-    return player_data
-
-
-def process_data(scraped_data: dict, config: dict) -> pd.DataFrame | None:
-    # ... (no changes needed here, it uses config['part1_results_file']) ...
-    # Access config values using dictionary keys
-    part1_results_file = config['part1_results_file'] # Uses the path set in load_config
-    minutes_col = config['processing']['part1_minutes_column']
-    min_minutes = config['processing']['min_minutes_threshold']
-    player_col = config['processing']['part1_player_column']
-    team_col = config['processing']['part1_team_column']
-    target_variable = config['processing']['target_variable']
-    output_folder = config['output_folder']
-    transfer_output_file = config['transfer_value_output_file']
-    estimation_output_file = config['estimation_ready_data_file']
-
-    # 1. Load Part 1 Data
-    try:
-        # This line now correctly uses the relative path
-        df_part1 = pd.read_csv(part1_results_file)
-        logging.info(f"Loaded Part 1 data: {df_part1.shape[0]} players from '{part1_results_file}'.")
-    except FileNotFoundError:
-        logging.error(f"Part 1 results file not found at '{part1_results_file}'")
-        return None
-    except Exception as e:
-        logging.error(f"Error loading Part 1 data from '{part1_results_file}': {e}")
-        return None
-
-    # 2. Filter Part 1 by Minutes
-    if minutes_col not in df_part1.columns:
-        logging.error(f"Minutes column '{minutes_col}' not found.")
-        return None
-
-    df_part1['minutes_numeric'] = pd.to_numeric(
-        df_part1[minutes_col].astype(str).str.replace(',', '', regex=False), errors='coerce'
-    )
-    df_filtered = df_part1.dropna(subset=['minutes_numeric'])
-    df_filtered = df_filtered[df_filtered['minutes_numeric'] > min_minutes].copy()
-    df_filtered.drop(columns=['minutes_numeric'], inplace=True)
-
-    if df_filtered.empty:
-        logging.warning(f"No players found with > {min_minutes} minutes.")
-        return df_filtered
-
-    logging.info(f"Filtered Part 1 data to {df_filtered.shape[0]} players.")
-
-    # 3. Prepare Transfer Data DataFrame
-    if not scraped_data:
-        logging.warning("No scraped transfer data provided. Adding empty transfer columns.")
-        df_merged = df_filtered.copy()
-        df_merged['Team_TransferSite'] = 'N/a'
-        df_merged['TransferValueRaw'] = 'N/a'
-        df_merged[target_variable] = pd.NA
-    else:
         try:
-            df_transfer = pd.DataFrame.from_dict(scraped_data, orient='index').reset_index()
-            if 'level_0' in df_transfer.columns and 'level_1' in df_transfer.columns:
-                 df_transfer.rename(columns={'level_0': 'Player', 'level_1': 'Team_TransferSite'}, inplace=True)
-            elif 'index' in df_transfer.columns and isinstance(df_transfer['index'].iloc[0], tuple):
-                 df_transfer[['Player', 'Team_TransferSite']] = pd.DataFrame(df_transfer['index'].tolist(), index=df_transfer.index)
-                 df_transfer.drop(columns=['index'], inplace=True)
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_btn)
+            time.sleep(random.uniform(0.4, 0.8))
 
-            logging.info(f"Converted scraped data to DataFrame: {df_transfer.shape[0]} entries.")
+            try:
+                next_btn.click()
+            except ElementClickInterceptedException:
+                print("Standard click intercepted, attempting JavaScript click for pagination.")
+                driver.execute_script("arguments[0].click();", next_btn)
+                time.sleep(0.2) 
 
-            # 4. Merge Data
-            if not all(col in df_filtered.columns for col in [player_col, team_col]):
-                 logging.error("Missing Player/Team columns in filtered Part 1 data for merge.")
-                 return df_filtered
+            print(f"Clicked 'Next page'. Waiting for page {page_num + 1} to load...")
+            time.sleep(random.uniform(2.0, 3.5))
 
-            if not all(col in df_transfer.columns for col in ['Player', 'Team_TransferSite', target_variable]):
-                logging.error(f"Missing required columns in transfer DataFrame for merge. Found: {df_transfer.columns.tolist()}")
-                return df_filtered
+            page_num += 1
 
-            logging.info(f"Merging on Part1:({player_col}, {team_col}) <-> Transfer:('Player', 'Team_TransferSite')")
-            df_merged = pd.merge(
-                df_filtered,
-                df_transfer[['Player', 'Team_TransferSite', 'TransferValueRaw', target_variable]],
-                left_on=[player_col, team_col],
-                right_on=['Player', 'Team_TransferSite'],
-                how='left'
-            )
-            df_merged[target_variable].fillna(pd.NA, inplace=True)
-            df_merged['TransferValueRaw'].fillna('N/a', inplace=True)
-            if 'Team_TransferSite' in df_merged.columns:
-                 df_merged['Team_TransferSite'].fillna('N/a', inplace=True)
-            else:
-                 df_merged['Team_TransferSite'] = 'N/a'
+        except (StaleElementReferenceException, TimeoutException, Exception) as e_click:
+            break 
 
-            logging.info(f"Merged data shape: {df_merged.shape}. Missing transfer values: {df_merged[target_variable].isna().sum()}")
+    return player_transfer_values
 
-        except Exception as e:
-            logging.error(f"Error during transfer data processing or merge: {e}")
-            traceback.print_exc()
-            df_merged = df_filtered.copy()
-            df_merged['Team_TransferSite'] = 'N/a'
-            df_merged['TransferValueRaw'] = 'N/a'
-            df_merged[target_variable] = pd.NA
+# --- Processor Functions ---
+def get_valid_players_from_part1(config: Dict[str, Any]) -> Set[str]:
+    valid_players: Set[str] = set()
+    part1_file_path = config['paths']['part1_results_absolute']
+    minutes_col = config['processing']['part1_minutes_column']
+    player_col = config['processing']['part1_player_column']
+    min_minutes = config['processing']['min_minutes_threshold']
 
-    # 5. Save Results
-    try:
-        os.makedirs(output_folder, exist_ok=True)
-        df_merged.to_csv(transfer_output_file, index=False, encoding='utf-8-sig')
-        logging.info(f"Saved merged data to '{transfer_output_file}'")
-        df_merged.to_csv(estimation_output_file, index=False, encoding='utf-8-sig')
-        logging.info(f"Saved estimation-ready data to '{estimation_output_file}'")
-        return df_merged
-    except Exception as e:
-        logging.error(f"Error saving results: {e}")
-        return df_merged
+    df_part1 = pd.read_csv(part1_file_path)
 
+    required_cols = [minutes_col, player_col]
+    if not all(col in df_part1.columns for col in required_cols):
+        return valid_players
 
-# --- Main Execution (remains the same) ---
+    df_part1['minutes_numeric'] = pd.to_numeric(df_part1[minutes_col].astype(str).str.replace(',', ''), errors='coerce')
+    df_part1.dropna(subset=['minutes_numeric'], inplace=True)
+    df_filtered = df_part1[df_part1['minutes_numeric'].astype(int) > min_minutes]
 
-def main():
-    """Main function to run the scraping and processing pipeline."""
+    if not df_filtered.empty:
+        valid_players = set(df_filtered[player_col].astype(str).str.strip().unique())
+        print(f"Found {len(valid_players)} players with > {min_minutes} minutes.")
+    else:
+        print(f"No players found with > {min_minutes} minutes.")
+    
+    return valid_players
+
+def process_transfer_data(scraped_data: PlayerData, config: Dict[str, Any]) -> Optional[pd.DataFrame]:
+    if not scraped_data:  
+        return None
+
+    df_raw = pd.DataFrame(list(scraped_data.values()))
+
+    if df_raw.empty: 
+        return df_raw 
+
+    save_data(df_raw, config['paths']['raw_data_full_path'], config['paths']['output_folder'])
+
+    valid_player_set = get_valid_players_from_part1(config)
+
+    if not valid_player_set:
+        return df_raw
+    
+    df_raw['Player_Normalized'] = df_raw['Player'].astype(str).str.strip()
+    df_filtered = df_raw[df_raw['Player_Normalized'].isin(valid_player_set)].copy()
+    df_filtered.drop(columns=['Player_Normalized'], inplace=True)
+
+    return df_filtered 
+
+# --- Main Execution ---
+def run_main_workflow(config: Dict[str, Any]):
     start_time = time.time()
-    logging.info("--- Start Part IV: Transfer Value Collection & Processing ---")
-
-    # Check if config was loaded successfully
-    if CONFIG is None:
-        return
-
-    chrome_options = ChromeOptions()
-    chrome_options.add_argument('--log-level=3')
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-
     final_df = None
-    try:
-        with managed_webdriver(chrome_options) as driver:
-            scraped_data = scrape_transfer_data(driver, CONFIG)
-            final_df = process_data(scraped_data, CONFIG)
+    with managed_driver(config) as driver:
+        if not driver:
+            return 
 
-        if final_df is None:
-             logging.warning("Processing did not return a DataFrame.")
-        elif final_df.empty:
-             logging.info("Processing resulted in an empty DataFrame.")
-        else:
-             logging.info(f"Successfully processed data. Final shape: {final_df.shape}")
+        scraped_data = scrape_transfer_data(driver, config)
 
-    except Exception as e:
-        logging.critical(f"An critical error occurred during the main execution: {e}")
-        traceback.print_exc()
+        if scraped_data is not None: 
+            final_df = process_transfer_data(scraped_data, config)
+        
+    # --- Save Final Processed Data ---
+    if final_df is not None: 
+        if not final_df.empty:
+            transfer_saved = save_data(final_df, config['paths']['transfer_value_output_full_path'], config['paths']['output_folder'])
+            estimation_saved = save_data(final_df, config['paths']['estimation_ready_data_full_path'], config['paths']['output_folder'])
+            if transfer_saved and estimation_saved:
+                 print(f"\nSuccessfully processed and saved filtered data. Final shape: {final_df.shape}")
+            else:
+                 print("\nProcessing complete, but failed to save one or both output files.")
 
-    finally:
-        end_time = time.time()
-        logging.info(f"--- Part IV finished in {end_time - start_time:.2f} seconds ---")
+    print(f"\n--- Workflow finished in {time.time() - start_time:.2f} seconds ---")
 
-
+# --- Script Entry Point ---
 if __name__ == '__main__':
-    main()
+    CONFIG = load_config() 
+
+    CONFIG['paths']['part1_results_absolute'] = os.path.abspath(os.path.join(SCRIPT_DIR, CONFIG['paths']['part1_results_relative']))
+    CONFIG['paths']['raw_data_full_path'] = os.path.join(CONFIG['paths']['output_folder'], CONFIG['paths']['raw_data_filename'])
+    CONFIG['paths']['transfer_value_output_full_path'] = os.path.join(CONFIG['paths']['output_folder'], CONFIG['paths']['transfer_value_output_filename'])
+    CONFIG['paths']['estimation_ready_data_full_path'] = os.path.join(CONFIG['paths']['output_folder'], CONFIG['paths']['estimation_ready_data_filename'])
+
+    # --- Pre-check for Input File ---
+    part1_path = CONFIG['paths']['part1_results_absolute']
+    if not os.path.exists(part1_path):
+            print("="*50 + f"\nWARNING: Input file not found:\n'{part1_path}'\nProcessing step might fail or yield no filtered data.\n" + "="*50)
+            time.sleep(2)
+
+    # --- Run Workflow ---
+    run_main_workflow(CONFIG)
