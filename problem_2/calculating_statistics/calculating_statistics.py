@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-csv_path = os.path.join(current_dir, '..', 'problem_1', 'results.csv')
+csv_path = os.path.join(current_dir, '..', '..', 'problem_1', 'results1.csv')
 output_filename = 'results2.csv'
 output_path = os.path.join(current_dir, output_filename)
 

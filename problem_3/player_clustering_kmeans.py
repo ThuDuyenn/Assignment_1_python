@@ -9,7 +9,7 @@ import seaborn as sns
 
 # --- Cấu hình ---
 PLAYER_COL = 'Name'
-CSV_RELATIVE_PATH = os.path.join('..', 'problem_1', 'results.csv')
+CSV_RELATIVE_PATH = os.path.join('..', 'problem_1', 'results1.csv')
 MAX_K_TO_TEST = 15
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -44,7 +44,7 @@ def cluster_players_kmeans(csv_path: str, player_col: str, max_k: int = 10):
 
     # --- 4. Xác định số cụm tối ưu (K) bằng phương pháp Elbow ---
     wcss = [] # Within-Cluster Sum of Squares
-    possible_k_values = range(1, max_k + 1)
+    possible_k_values = range(3, max_k + 1)
 
     for k in possible_k_values:
         kmeans_model = KMeans(n_clusters=k, init='k-means++', n_init='auto', random_state=42)

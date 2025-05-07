@@ -1,17 +1,16 @@
 import pandas as pd
 import numpy as np
 import os
-import json 
+import json
 
 def load_config(config_path='config.json'):
-    """Đọc file cấu hình JSON và trả về dictionary chứa cấu hình."""
     with open(config_path, 'r', encoding='utf-8') as f:
         config_data = json.load(f)
     config_data['ignore_stats_set'] = {k.lower() for k in config_data.get('ignore_stats_keywords', [])}
     config_data['bad_stats_set'] = {k.lower() for k in config_data.get('bad_stats_keywords', [])}
     config_data['good_stats_set'] = {k.lower() for k in config_data.get('good_stats_keywords', [])}
     return config_data
-    
+
 def classify_stat(stat_name, ignore_set, bad_set, good_set):
     stat_lower = stat_name.lower()
     if stat_lower in ignore_set:
@@ -22,87 +21,96 @@ def classify_stat(stat_name, ignore_set, bad_set, good_set):
         return 'good'
     return 'uncategorized'
 
-# --- Hàm Phân tích Chính (Giờ nhận config_data dict và các Set) ---
+# --- Hàm Phân tích Chính ---
 def analyze_performance_by_stat_type(df, team_column, ignore_set, bad_set, good_set):
     results = {}
-    classified_stats = {'good': [], 'bad': [], 'ignore': [], 'uncategorized': []}
     stats_to_analyze = []
+    potential_stats_cols = [col for col in df.columns if col.startswith("Mean of ") and col != team_column]
 
-    potential_stats_cols = df.columns.drop(team_column, errors='ignore')
-
-    for col in potential_stats_cols:
-        stat_type = classify_stat(col, ignore_set, bad_set, good_set)
-        classified_stats[stat_type].append(col)
+    for col_full_name in potential_stats_cols:
+        actual_stat_name = col_full_name.replace("Mean of ", "", 1)
+        stat_type = classify_stat(actual_stat_name, ignore_set, bad_set, good_set)
         if stat_type != 'ignore':
-            temp_numeric_col = pd.to_numeric(df[col], errors='coerce')
+            temp_numeric_col = pd.to_numeric(df[col_full_name], errors='coerce')
             if not temp_numeric_col.isnull().all():
-                 stats_to_analyze.append(col)
+                    stats_to_analyze.append(col_full_name)
 
-    print(f"\nTổng cộng: {len(classified_stats['good'])} GOOD, {len(classified_stats['bad'])} BAD, {len(classified_stats['ignore'])} IGNORE, {len(classified_stats['uncategorized'])} UNCATEGORIZED")
-    print(f"Sẽ phân tích {len(stats_to_analyze)} cột (GOOD, BAD, UNCATEGORIZED có dữ liệu số).")
+    print(f"Sẽ phân tích {len(stats_to_analyze)} cột 'Mean of...' (GOOD, BAD, UNCATEGORIZED có dữ liệu số).")
     print("---------------------------------------------")
 
     # --- Thực hiện phân tích ---
-    for stat in stats_to_analyze:
-        stat_type = classify_stat(stat, ignore_set, bad_set, good_set)
-        numeric_stat_col = pd.to_numeric(df[stat], errors='coerce')
-
-        if numeric_stat_col.isnull().all():
-            results[stat] = ('Only NaN Data', None, stat_type)
-            continue
-
+    for stat_col_full_name in stats_to_analyze: 
+        actual_stat_name_key = stat_col_full_name.replace("Mean of ", "", 1) 
+        stat_type = classify_stat(actual_stat_name_key, ignore_set, bad_set, good_set)
+        
+        numeric_stat_col = pd.to_numeric(df[stat_col_full_name], errors='coerce')
         valid_numeric_col = numeric_stat_col.dropna()
-    
+            
         best_value = None
         best_value_idx = None
-
+        
         if stat_type == 'good' or stat_type == 'uncategorized':
             best_value_idx = valid_numeric_col.idxmax()
             best_value = valid_numeric_col.max()
         elif stat_type == 'bad':
             best_value_idx = valid_numeric_col.idxmin()
             best_value = valid_numeric_col.min()
+        
+        if best_value_idx is None or best_value is None: 
+            results[actual_stat_name_key] = ('Error finding best value', None, stat_type)
+            continue
 
-        original_value_display = df.loc[best_value_idx, stat]
-        top_teams_df = df.loc[numeric_stat_col.notna() & (numeric_stat_col == best_value), team_column]
+        original_value_display = df.loc[best_value_idx, stat_col_full_name]
+        top_teams_df = df.loc[numeric_stat_col.notna() & (df[stat_col_full_name] == best_value), team_column]
         top_teams_list = top_teams_df.unique().tolist()
-        top_str = ", ".join(top_teams_list) if top_teams_list else "Không tìm thấy"
-        results[stat] = (top_str, original_value_display, stat_type)
+        
+        cleaned_top_teams_list = [str(t).strip() for t in top_teams_list if str(t).strip()]
+        top_str = ", ".join(cleaned_top_teams_list) if cleaned_top_teams_list else "Không tìm thấy"
+        
+        results[actual_stat_name_key] = (top_str, original_value_display, stat_type)
 
     return results
 
 def format_value(value):
     if value is None or pd.isna(value):
         return "N/A"
-    numeric_value = pd.to_numeric(value)
-    if pd.api.types.is_integer_dtype(type(numeric_value)) or (pd.api.types.is_float_dtype(type(numeric_value)) and numeric_value == np.floor(numeric_value)):
+    try:
+        numeric_value = pd.to_numeric(value)
+        if np.isinf(numeric_value):
+            return str(numeric_value)
+        if isinstance(numeric_value, (int, np.integer)) or \
+           (isinstance(numeric_value, (float, np.floating)) and numeric_value == np.floor(numeric_value)):
             return str(int(numeric_value))
-    elif pd.api.types.is_float_dtype(type(numeric_value)):
+        elif isinstance(numeric_value, (float, np.floating)):
             return f"{numeric_value:.2f}"
-    else:
+        else:
             return str(value)
+    except ValueError:
+        return str(value)
 
 # --- Main Execution Block ---
 if __name__ == '__main__':
-    # --- 1. Đọc cấu hình từ JSON ---
-    CONFIG_FILE_PATH = 'config.json' 
+    CONFIG_FILE_PATH = 'config.json'
     config_data = load_config(CONFIG_FILE_PATH)
 
-    team_col_name = config_data.get('team_column')
-    csv_relative_path = config_data.get('csv_relative_path')
-    na_vals = config_data.get('na_values', []) 
-
+    na_vals = config_data.get('na_values', [])
     ignore_set = config_data.get('ignore_stats_set', set())
     bad_set = config_data.get('bad_stats_set', set())
     good_set = config_data.get('good_stats_set', set())
 
-    # --- 2. Xác định đường dẫn tuyệt đối và đọc CSV ---
-
-    current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    CSV_FULL_PATH = os.path.normpath(os.path.join(current_script_dir, csv_relative_path))
-    dataframe = pd.read_csv(CSV_FULL_PATH, na_values=na_vals)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path_relative_to_script_dir = os.path.join('..', 'calculating_statistics', 'results2.csv')
+    CSV_FULL_PATH = os.path.normpath(os.path.join(current_dir, csv_path_relative_to_script_dir))
     
-    # --- 3. Thực hiện phân tích ---
+    dataframe = pd.read_csv(CSV_FULL_PATH, na_values=na_vals)
+
+    team_col_name = dataframe.columns[0]
+
+    if team_col_name in dataframe.columns:
+        dataframe[team_col_name] = dataframe[team_col_name].astype(str).str.lower()
+        initial_row_count = len(dataframe)
+        dataframe = dataframe[dataframe[team_col_name] != 'all']
+        
     analysis_results = analyze_performance_by_stat_type(
         df=dataframe,
         team_column=team_col_name,
@@ -111,64 +119,70 @@ if __name__ == '__main__':
         good_set=good_set
     )
 
-    # --- 4. Hiển thị kết quả và đánh giá ---
     if analysis_results:
         print("\n--- Tóm tắt Phân tích Chi tiết ---")
-        for stat, (team, value, stat_type) in analysis_results.items():
+        sorted_analysis_results = sorted(analysis_results.items())
+
+        for stat_actual_name, (team, value, stat_type) in sorted_analysis_results:
             value_str = format_value(value)
             stat_type_hr = stat_type.upper()
-            print(f"* {stat} [{stat_type_hr}]:")
-            if team == 'Only NaN Data':
+            print(f"* {stat_actual_name} [{stat_type_hr}]:")
+            if team == "Không tìm thấy" or team == "Error finding best value":
                 print(f"  - Trạng thái: {team}")
-            elif team == "Không tìm thấy":
-                 print(f"  - Không tìm thấy đội dẫn đầu.")
             else:
                 analysis_desc = ""
                 if stat_type == 'good': analysis_desc = "cao nhất (tốt)"
                 elif stat_type == 'bad': analysis_desc = "thấp nhất (tốt)"
                 elif stat_type == 'uncategorized': analysis_desc = "cao nhất (chưa phân loại)"
-                value_display = f"  - Giá trị: {value_str}" if value_str != "N/A" else "  - Giá trị: (Không có)"
+                
                 print(f"  - Đội có giá trị {analysis_desc}: {team}")
+                value_display = f"  - Giá trị (Mean): {value_str}" if value_str != "N/A" else "  - Giá trị (Mean): (Không có)"
                 print(value_display)
         print("-----------------------------------")
 
-        print("\n--- Đánh giá Sơ bộ (Dựa trên số lượng chỉ số dẫn đầu) ---")
         good_lead_counts = {}
         bad_lead_counts = {}
         valid_stats_count = 0
-        for stat, (team_str, value, stat_type) in analysis_results.items():
-             if value is not None and pd.notna(value) and team_str not in ['Only NaN Data', 'Không tìm thấy']:
-                 valid_stats_count += 1
-                 teams = team_str.split(", ")
-                 for t in teams:
-                     if stat_type == 'good':
-                         good_lead_counts[t] = good_lead_counts.get(t, 0) + 1
-                     elif stat_type == 'bad':
-                         bad_lead_counts[t] = bad_lead_counts.get(t, 0) + 1
+        for stat_actual_name, (team_str, value, stat_type) in analysis_results.items():
+            if value is not None and pd.notna(value) and team_str not in ['Không tìm thấy', 'Error finding best value'] and team_str.strip():
+                valid_stats_count += 1
+                teams = team_str.split(", ")
+                for t_raw in teams:
+                    t = t_raw.strip()
+                    if t: 
+                        if stat_type == 'good':
+                            good_lead_counts[t] = good_lead_counts.get(t, 0) + 1
+                        elif stat_type == 'bad':
+                            bad_lead_counts[t] = bad_lead_counts.get(t, 0) + 1
+        
+        # --- Bảng Xếp Hạng Tất Cả Các Đội ---
+        # Khởi tạo điểm tổng hợp cho tất cả các đội còn lại trong DataFrame (sau khi bỏ hàng 'all')
+        all_teams_in_filtered_df_raw = dataframe[team_col_name].dropna().unique()
+        all_teams_cleaned = {str(team).strip() for team in all_teams_in_filtered_df_raw if str(team).strip()}
 
-        if good_lead_counts or bad_lead_counts:
-            print(f"Đã phân tích và tìm thấy người dẫn đầu cho {valid_stats_count} chỉ số số hợp lệ (Good/Bad).")
-            print("\nSố lần dẫn đầu chỉ số 'TỐT' (Cao nhất trong nhóm 'Good'):")
-            if good_lead_counts:
-                sorted_good = sorted(good_lead_counts.items(), key=lambda item: item[1], reverse=True)
-                for team, count in sorted_good: print(f"  - {team}: {count} lần")
-            else: print("  (Không có)")
-            print("\nSố lần 'dẫn đầu' chỉ số 'XẤU' (Thấp nhất trong nhóm 'Bad' - cũng là Tốt):")
-            if bad_lead_counts:
-                sorted_bad = sorted(bad_lead_counts.items(), key=lambda item: item[1], reverse=True)
-                for team, count in sorted_bad: print(f"  - {team}: {count} lần")
-            else: print("  (Không có)")
-            combined_scores = {}
-            all_teams = set(good_lead_counts.keys()) | set(bad_lead_counts.keys())
-            for team in all_teams: combined_scores[team] = good_lead_counts.get(team, 0) + bad_lead_counts.get(team, 0)
+        combined_scores = {team: 0 for team in all_teams_cleaned}
+
+        # Cập nhật điểm từ good_lead_counts và bad_lead_counts
+        for team, count in good_lead_counts.items():
+            if team in combined_scores: combined_scores[team] += count
+        for team, count in bad_lead_counts.items():
+            if team in combined_scores: combined_scores[team] += count
+        
+        if combined_scores:
+            # Sắp xếp các đội theo điểm tổng hợp (giảm dần), sau đó theo tên đội (tăng dần)
+            sorted_combined_ranking = sorted(combined_scores.items(), key=lambda x: (-x[1], x[0]))
             
-            if combined_scores:
-                sorted_combined = sorted(combined_scores.items(), key=lambda item: item[1], reverse=True)
-                if sorted_combined:
-                    best_overall_team, best_score = sorted_combined[0]
-                    print(f"\n-> Đội dẫn đầu nhiều nhất: {best_overall_team} ({best_score} lần)")
+            print("\n--- Bảng Xếp Hạng Tổng Hợp Các Đội (Dựa trên số lần dẫn đầu 'Mean of...') ---")
+            if not sorted_combined_ranking:
+                print("Không có dữ liệu để xếp hạng.")
             else:
-                print("\nKhông có đội nào dẫn đầu các chỉ số 'Good' hoặc 'Bad' đã phân tích.")
-        else: print("Không có đủ dữ liệu hợp lệ để đưa ra đánh giá tổng hợp.")
-    else:
-        print("\nPhân tích không thành công hoặc không có kết quả.")
+                current_rank_display = 0
+                last_score_val = -1 
+                for i, (team_name, team_score) in enumerate(sorted_combined_ranking):
+                    if team_score != last_score_val: 
+                        current_rank_display = i + 1
+                        last_score_val = team_score
+                    print(f"Hạng {current_rank_display}: {team_name} ({team_score} lần dẫn đầu)")
+        else:
+            print("\nKhông có đội nào dẫn đầu các chỉ số 'Mean of...' (Good/Bad) đã phân tích để xếp hạng.")
+        # --- Kết thúc Bảng Xếp Hạng ---

@@ -1,6 +1,5 @@
 {
   "team_column": "Team",
-  "csv_relative_path": "../../problem_1/results.csv",
   "na_values": [
     "N/a", "n/a", "NA", "na", "NaN", "nan", "", "#N/A", "null", "NULL"
   ],

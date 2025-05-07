@@ -137,7 +137,7 @@ if __name__ == '__main__':
     ]
 
     current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(current_script_dir, '..', '..', 'problem_1', 'results.csv')
+    csv_path = os.path.join(current_script_dir, '..', '..', 'problem_1', 'results1.csv')
     df = pd.read_csv(csv_path, encoding='utf-8')
         
     ensure_dir(output_final_dir)

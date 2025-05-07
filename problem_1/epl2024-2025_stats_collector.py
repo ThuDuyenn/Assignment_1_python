@@ -22,7 +22,8 @@ BASE_URL = config["base_url"]
 STATS_CONFIG = config["stats_config"]
 COLUMN_ORDER = config["column_order"]
 CSV_FILENAME = config["csv_filename"]
-MIN_MINUTES = config["min_minutes"]
+CSV_FILENAME_1 = "results1.csv"
+MIN_MINUTES = config["min_minutes"] 
 WAIT_TIMEOUT = config["wait_timeout"]
 CURRENT_SEASON = "2024-2025"
 
@@ -91,7 +92,7 @@ def scrape_fbref_data(driver, url, table_id, stats_to_extract, player_data, glob
         primary_id = player_id if player_id else player_name
         if not primary_id:
              continue
-        
+
         player_team_key = (primary_id, team_name)
 
         if player_team_key not in player_data:
@@ -116,8 +117,8 @@ def scrape_fbref_data(driver, url, table_id, stats_to_extract, player_data, glob
             for key, cfg in global_stats_config.items():
                 if cfg['data_stat'] == data_stat_attr and cfg['table_id'] == table_id:
                     if key != 'Nation':
-                       stat_key = key
-                       break
+                        stat_key = key
+                        break
 
             if stat_key:
                 value = safe_get_text(row, data_stat_attr, default=None)
@@ -149,6 +150,22 @@ if __name__ == "__main__":
 
     driver.quit()
 
+    # --- Processing for results1.csv (single team > 90 minutes) ---
+    single_team_over_90_list = []
+    for player_team_key, stats_dict in scraped_data.items():
+        minutes_raw = stats_dict.get('Playing Time: minutes', '0')
+        minutes_str = str(minutes_raw).replace(',', '') if minutes_raw is not None else '0'
+        minutes_played_this_team = int(minutes_str) if minutes_str.isdigit() else 0
+
+        if minutes_played_this_team > MIN_MINUTES:
+            formatted_player_dict = {}
+            for col_name in COLUMN_ORDER:
+                raw_or_processed_value = stats_dict.get(col_name, None)
+                formatted_val = format_value(col_name, raw_or_processed_value)
+                formatted_player_dict[col_name] = formatted_val
+            single_team_over_90_list.append(formatted_player_dict)
+
+    # --- Processing for results.csv (total minutes > MIN_MINUTES) ---
     player_minutes_aggregate = defaultdict(lambda: {'total_minutes': 0, 'entries': []})
 
     for player_team_key, stats_dict in scraped_data.items():
@@ -173,14 +190,24 @@ if __name__ == "__main__":
                     formatted_player_dict[col_name] = formatted_val
                 final_player_list_of_dicts.append(formatted_player_dict)
 
+    # --- Sorting and Saving results.csv ---
     if final_player_list_of_dicts:
          final_player_list_of_dicts.sort(key=lambda p_dict: str(p_dict.get('Name', '')).split()[0] if p_dict.get('Name') and ' ' in str(p_dict.get('Name', '')) else str(p_dict.get('Name', '')))
-         print("Sorting by first name applied.")
-
-    if final_player_list_of_dicts:
-        df = pd.DataFrame(final_player_list_of_dicts)
-        df = df[COLUMN_ORDER] # Reorder columns
-        df.to_csv(CSV_FILENAME, index=False, encoding='utf-8-sig')
-        print(f"Data saved successfully to {CSV_FILENAME}")
+         print("Sorting by first name applied for results.csv.")
+         df = pd.DataFrame(final_player_list_of_dicts)
+         df = df[COLUMN_ORDER]
+         df.to_csv(CSV_FILENAME, index=False, encoding='utf-8-sig')
+         print(f"Data saved successfully to {CSV_FILENAME}")
     else:
-        print("No players met the criteria or data could not be processed.")
+         print(f"No players met the criteria for {CSV_FILENAME} or data could not be processed.")
+
+    # --- Sorting and Saving results1.csv ---
+    if single_team_over_90_list:
+        single_team_over_90_list.sort(key=lambda p_dict: str(p_dict.get('Name', '')).split()[0] if p_dict.get('Name') and ' ' in str(p_dict.get('Name', '')) else str(p_dict.get('Name', '')))
+        print("Sorting by first name applied for results1.csv.")
+        df1 = pd.DataFrame(single_team_over_90_list)
+        df1 = df1[COLUMN_ORDER]
+        df1.to_csv(CSV_FILENAME_1, index=False, encoding='utf-8-sig')
+        print(f"Data saved successfully to {CSV_FILENAME_1}")
+    else:
+        print(f"No players met the criteria (> {MIN_MINUTES} minutes for a single team) for {CSV_FILENAME_1}.")
