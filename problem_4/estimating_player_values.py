@@ -1,249 +1,340 @@
 import pandas as pd
 import numpy as np
-import re
-import os # Import thư viện os
+import os
+import traceback
+import joblib
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import r2_score, mean_squared_error
+import xgboost as xgb
+import matplotlib.pyplot as plt
+import seaborn as sns
+import shap
 
-# Import necessary sklearn modules
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import Ridge
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-
-# --- Step 1: Load Data ---
-print("Bước 1: Tải dữ liệu...")
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-output_dir = os.path.join(script_dir, "OUTPUT")
-
-# Xây dựng đường dẫn đến thư mục problem_1 (nằm cùng cấp với script_dir)
-parent_dir = os.path.dirname(script_dir) # Lấy thư mục cha (Assignment_1)
-problem1_dir = os.path.join(parent_dir, "problem_1")
-
-# Tạo đường dẫn đầy đủ đến các tệp CSV
-estimation_file_path = os.path.join(output_dir, "estimation_data.csv")
-# results.csv nằm trong thư mục problem_1
-results_file_path = os.path.join(problem1_dir, "results.csv")
-# ---------------------------------
-
-try:
-    # Tải dữ liệu bằng đường dẫn đã xác định
-    df_estimation = pd.read_csv(estimation_file_path)
-    df_results = pd.read_csv(results_file_path)
-    print(f"Tải dữ liệu thành công từ '{estimation_file_path}' và '{results_file_path}'.")
-except FileNotFoundError as e:
-    print(f"Lỗi: Không tìm thấy tệp tin. Vui lòng kiểm tra lại đường dẫn và cấu trúc thư mục.")
-    print(f"Đường dẫn đang tìm kiếm: '{os.path.abspath(estimation_file_path)}', '{os.path.abspath(results_file_path)}'")
-    print(f"Thư mục gốc của script (hoặc thư mục làm việc): '{script_dir}'")
-    exit() # Exit if files not found
-except Exception as e:
-    print(f"Đã xảy ra lỗi khi đọc tệp: {e}")
-    exit()
-
-# --- Step 2: Prepare and Merge Data ---
-print("\nBước 2: Chuẩn bị và kết hợp dữ liệu...")
-try:
-    # --- 2a. Prepare df_estimation ---
-    df_model_base = df_estimation[['Player', 'Age', 'Position', 'Skill', 'Potential', 'TransferValue_EUR_Millions']].copy()
-    df_model_base.rename(columns={'TransferValue_EUR_Millions': 'TargetValue'}, inplace=True)
-    df_model_base['Age'] = df_model_base['Age'].astype(int)
-
-    # --- 2b. Prepare df_results ---
-    cols_to_select = {
-        'Name': 'Player', # Key for merging
-        'Playing Time: minutes': 'Minutes',
-        'Performance: goals': 'Goals',
-        'Performance: assists': 'Assists',
-        'Expected: expected goals (xG)': 'xG',
-        'Expected: expected Assist Goals (xAG)': 'xAG',
-        'Tackles: TklW': 'TacklesWon',
-        'Blocks: Int': 'Interceptions',
-        'Total: Pass completion (Cmp%)': 'PassAcc%',
-        'Aerial Duels: Won%': 'AerialWon%',
-        'Progression: PrgC': 'ProgProgCarries',
-        'Progression: PrgP': 'ProgPasses'
+# --- Cấu hình đường dẫn ---
+def configure_paths():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir_for_results = os.path.dirname(script_dir)
+    return {
+        'estimation': os.path.join(script_dir, "OUTPUT", "estimation_data.csv"),
+        'results': os.path.join(parent_dir_for_results, "problem_1", "results1.csv"),
+        'model_artifacts_output': os.path.join(script_dir, "OUTPUT_XGB_PROPOSED"),
+        'visualizations_output': os.path.join(script_dir, "visualizations_output") 
     }
-    existing_cols_results = [col for col in cols_to_select.keys() if col in df_results.columns]
-    if len(existing_cols_results) < len(cols_to_select):
-        missing = set(cols_to_select.keys()) - set(existing_cols_results)
-        print(f"Cảnh báo: Các cột sau không tìm thấy trong results.csv: {missing}")
-    df_performance = df_results[existing_cols_results].copy()
-    rename_map = {k:v for k,v in cols_to_select.items() if k in existing_cols_results}
-    df_performance.rename(columns=rename_map, inplace=True)
+
+def convert_special_numeric(df, columns):
+    for col in columns:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.upper()
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+    return df
 
 
-    # --- 2c. Clean selected performance columns ---
-    def clean_percentage(x):
-        if isinstance(x, str):
-            try:
-                return float(x.replace('%', '').strip()) / 100.0
-            except ValueError:
-                return np.nan
-        elif isinstance(x, (int, float)):
-            return x / 100.0 if x > 1.0 else x
-        return np.nan
+def load_and_merge_data(paths):
+    df_est = pd.read_csv(paths['estimation'])
+    df_res = pd.read_csv(paths['results'])
 
-    percent_cols = [col for col in ['PassAcc%', 'AerialWon%'] if col in df_performance.columns]
-    numeric_cols = [col for col in ['Minutes', 'Goals', 'Assists', 'xG', 'xAG', 'TacklesWon', 'Interceptions', 'ProgProgCarries', 'ProgPasses'] if col in df_performance.columns]
+    team_name_mapping = {
+        "B'mouth": "Bournemouth", "C. Palace": "Crystal Palace",
+        "Leicester": "Leicester City", "Man City": "Manchester City",
+        "Man Utd": "Manchester Utd", "Newcastle Utd.": "Newcastle Utd", 
+        "Nottingham": "Nott'ham Forest", "West Ham United": "West Ham",
+        "Wolverhampton": "Wolves"
+    }
+    if 'Team_TransferSite' in df_est.columns:
+        df_est['Team_TransferSite'] = df_est['Team_TransferSite'].replace(team_name_mapping)
+        
+    left_keys = ['Player', 'Team_TransferSite']
+    right_keys = ['Name', 'Team']
+    if not all(key in df_est.columns for key in left_keys):
+            raise KeyError(f"Thiếu cột khóa merge trong df_est (cần {left_keys}).")
+    if not all(key in df_res.columns for key in right_keys):
+            raise KeyError(f"Thiếu cột khóa merge trong df_res (cần {right_keys}).")
 
-    for col in percent_cols:
-        df_performance[col] = df_performance[col].apply(clean_percentage)
+    merged = pd.merge(df_est, df_res, 
+                        left_on=left_keys, 
+                        right_on=right_keys, 
+                        how='inner')
+    return merged
+    
+def advanced_feature_engineering(df):
+    if 'Position_x' in df.columns:
+        df['PrimaryPosition'] = df['Position_x'].astype(str).str.split(',', n=1).str[0].str.strip()
+        df['PrimaryPosition'] = df['PrimaryPosition'].replace(['', 'nan', 'NaN'], pd.NA).fillna('Unknown')
+    
+    df = convert_special_numeric(df, [
+        'Skill', 'Potential', 'Age_x',
+        'Expected: expected goals (xG)', 
+        'Expected: expected Assist Goals (xAG)',
+        'TransferValue_EUR_Millions' 
+    ])
+    
+    df['Playing Time: minutes'] = pd.to_numeric(df['Playing Time: minutes'], errors='coerce')
+    minutes = df['Playing Time: minutes'].fillna(90).clip(lower=90) 
+    metrics = {
+        'GoalContrib': ['Performance: goals', 'Performance: assists'],
+        'DefensiveActions': ['Tackles: TklW', 'Blocks: Int'], 
+        'Progression': ['Progression: PrgC', 'Progression: PrgP']
+    }
+    for name, cols in metrics.items():
+        existing_cols = [col for col in cols if col in df.columns]
+        if existing_cols: 
+            for metric_col in existing_cols:
+                df[metric_col] = pd.to_numeric(df[metric_col], errors='coerce')
+            df[f'{name}_per90'] = df[existing_cols].fillna(0).sum(axis=1) / (minutes / 90 + 1e-6) 
+        else:
+            df[f'{name}_per90'] = 0.0
+    
+    for col_percent in ['Total: Pass completion (Cmp%)', 'Aerial Duels: Won%']:
+        if col_percent in df.columns:
+            df[col_percent] = df[col_percent].astype(str).str.replace('%', '', regex=False).str.replace(',', '.', regex=False) 
+            df[col_percent] = pd.to_numeric(df[col_percent], errors='coerce').fillna(0.0) / 100.0
+        else:
+            df[col_percent] = 0.0
 
-    for col in numeric_cols:
-        df_performance[col] = pd.to_numeric(df_performance[col], errors='coerce')
+    df['TransferValue_EUR_Millions'] = pd.to_numeric(df['TransferValue_EUR_Millions'], errors='coerce')
+    if (df['TransferValue_EUR_Millions'] < 0).any():
+        df['TransferValue_EUR_Millions'] = df['TransferValue_EUR_Millions'].clip(lower=0)
+    df['Log_TransferValue'] = np.log1p(df['TransferValue_EUR_Millions'])
 
-    for col in percent_cols + numeric_cols:
-         if df_performance[col].isnull().any():
-            median_val = df_performance[col].median()
-            df_performance[col].fillna(median_val, inplace=True)
+    return df
 
-    # --- 2d. Merge DataFrames ---
-    if 'Player' not in df_performance.columns:
-        print("Lỗi: Cột 'Player' không tồn tại trong dữ liệu hiệu suất. Không thể kết hợp.")
-        exit()
+def prepare_model_data(df):
+    features_candidates = [
+        'Age_x', 'PrimaryPosition', 'Skill', 'Potential', 
+        'GoalContrib_per90', 'DefensiveActions_per90', 'Progression_per90',
+        'Expected: expected goals (xG)', 'Expected: expected Assist Goals (xAG)',
+        'Total: Pass completion (Cmp%)', 'Aerial Duels: Won%'
+    ]
+    
+    numeric_feature_names = []
+    for f_name in features_candidates:
+        if f_name in df.columns and f_name != 'PrimaryPosition':
+            if pd.api.types.is_numeric_dtype(df[f_name]):
+                numeric_feature_names.append(f_name)
+            else: 
+                try:
+                    df[f_name] = pd.to_numeric(df[f_name], errors='coerce')
+                    if pd.api.types.is_numeric_dtype(df[f_name]):
+                         numeric_feature_names.append(f_name)
+                    else:
+                        print(f"  Warning (prepare_model_data): Column '{f_name}' could not be converted to numeric and will be excluded.")
+                except: 
+                     print(f"  Warning (prepare_model_data): Error converting column '{f_name}' to numeric. It will be excluded.")
 
-    df_merged = pd.merge(df_model_base, df_performance, on='Player', how='left')
+    categorical_feature_names = ['PrimaryPosition'] 
 
-    stats_cols_to_fill = df_performance.columns.drop('Player')
-    fill_values = {}
-    for col in stats_cols_to_fill:
-        if col in df_merged.columns:
-             if df_merged[col].isnull().any():
-                median_val = df_merged[col].median()
-                fill_values[col] = median_val
-                df_merged[col].fillna(median_val, inplace=True)
-                print(f"Đã gán giá trị trung vị ({median_val:.3f}) cho '{col}' cho các cầu thủ bị thiếu sau khi merge.")
-
-    print("Chuẩn bị và kết hợp dữ liệu hoàn tất.")
-    print(f"Kích thước dữ liệu kết hợp: {df_merged.shape}")
-    if df_merged.isnull().sum().sum() > 0:
-        print("Cảnh báo: Vẫn còn giá trị thiếu!")
-        print(df_merged.isnull().sum()[df_merged.isnull().sum() > 0])
+    if numeric_feature_names:
+        numeric_df = df[numeric_feature_names].copy()
+        for col in numeric_df.columns: 
+            if numeric_df[col].isnull().any():
+                numeric_df[col] = numeric_df[col].fillna(numeric_df[col].mean())
+        scaler = StandardScaler()
+        X_numeric_scaled = scaler.fit_transform(numeric_df)
     else:
-        print("Không còn giá trị thiếu trong dữ liệu kết hợp.")
+        X_numeric_scaled = np.empty((len(df), 0)) 
+        scaler = None 
 
-except Exception as e:
-    print(f"Đã xảy ra lỗi trong Bước 2: {e}")
-    import traceback
-    traceback.print_exc()
-    exit()
+    le_dict = {}
+    X_categorical_encoded_list = []
+    final_categorical_feature_names_encoded = []
 
-# --- Step 3: EDA & Preprocessing ---
-print("\nBước 3: EDA & Tiền xử lý...")
-try:
-    # --- 3a. Log Transform Target ---
-    if (df_merged['TargetValue'] <= 0).any():
-        print("Cảnh báo: TargetValue <= 0. Sử dụng log1p.")
-        df_merged['TargetValue_log'] = np.log1p(df_merged['TargetValue'])
-    else:
-        df_merged['TargetValue_log'] = np.log(df_merged['TargetValue'])
-    target_variable = 'TargetValue_log'
+    for cat_col in categorical_feature_names:
+        if cat_col in df.columns:
+            le = LabelEncoder()
+            encoded_col = le.fit_transform(df[cat_col].astype(str)) 
+            X_categorical_encoded_list.append(encoded_col.reshape(-1, 1))
+            le_dict[cat_col] = le
+            final_categorical_feature_names_encoded.append(f"{cat_col}_enc")
+        else: 
+            print(f"  Warning (prepare_model_data): Categorical feature '{cat_col}' not found, though expected.")
 
-    # --- 3b. Define Features (X) and Target (y) ---
-    X = df_merged.drop(['Player', 'TargetValue', target_variable], axis=1, errors='ignore')
-    y = df_merged[target_variable]
+    final_feature_names = []
+    if X_categorical_encoded_list:
+        X_categorical_encoded = np.concatenate(X_categorical_encoded_list, axis=1)
+        if X_numeric_scaled.shape[1] > 0 : 
+            X = np.concatenate((X_numeric_scaled, X_categorical_encoded), axis=1)
+            final_feature_names = numeric_feature_names + final_categorical_feature_names_encoded
+        else: 
+            X = X_categorical_encoded
+            final_feature_names = final_categorical_feature_names_encoded
+    elif X_numeric_scaled.shape[1] > 0 : 
+        X = X_numeric_scaled
+        final_feature_names = numeric_feature_names
+    else: 
+        raise ValueError("No features available to form X matrix.")
 
-    # --- 3c. Identify Feature Types ---
-    categorical_features = ['Position'] if 'Position' in X.columns else []
-    numerical_features = X.select_dtypes(include=np.number).columns.tolist()
+    y = df['Log_TransferValue']
+    
+    if X.shape[0] == 0 or X.shape[0] != len(y):
+        raise ValueError(f"Feature matrix X shape {X.shape} is empty or mismatched with y shape {len(y)}.")
+        
+    return X, y, scaler, le_dict, final_feature_names 
 
-    # --- 3d. Split Data ---
+def train_model(X, y): 
+    param_grid = {
+        'max_depth': [4, 6, 8], 'learning_rate': [0.01, 0.05, 0.1],
+        'subsample': [0.6, 0.8, 1.0], 'colsample_bytree': [0.6, 0.8, 1.0],
+        'gamma': [0, 0.1, 0.5], 'n_estimators': [100, 500, 1000] 
+    }
+    
+    model_xgb = xgb.XGBRegressor(early_stopping_rounds=50, random_state=42)
+    try:
+        config = xgb.get_config()
+        if config.get('USE_CUDA', False) or config.get('gpu_id', -1) != -1:
+            model_xgb.set_params(tree_method='gpu_hist')
+            print("  Info (train_model): Attempting to use GPU for XGBoost.")
+        else:
+            model_xgb.set_params(tree_method='hist')
+            print("  Info (train_model): Using CPU (hist) for XGBoost (GPU not available or XGBoost not built with CUDA).")
+    except Exception as e_gpu:
+        model_xgb.set_params(tree_method='hist')
+        print(f"  Info (train_model): Could not configure GPU, using CPU (hist). Error: {e_gpu}")
+
+    search = RandomizedSearchCV(
+        model_xgb, param_grid, n_iter=20, cv=5, 
+        scoring='r2', n_jobs=-1, random_state=42 
+    )
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    y_test_original = np.expm1(y_test) if target_variable == 'TargetValue_log' else np.exp(y_test)
+    
+    print(f"  Training model with X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
+    search.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=False) 
+    print(f"  Best parameters found: {search.best_params_}")
+    return search.best_estimator_
 
-    # --- 3e. Create Preprocessing Pipeline ---
-    transformers_list = []
-    if numerical_features:
-        transformers_list.append(('num', StandardScaler(), numerical_features))
-    if categorical_features:
-        transformers_list.append(('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), categorical_features))
+if __name__ == "__main__":
+    paths = configure_paths()
+    os.makedirs(paths['model_artifacts_output'], exist_ok=True)
+    os.makedirs(paths['visualizations_output'], exist_ok=True) 
+    print(f"Output for model artifacts will be saved to: {paths['model_artifacts_output']}")
+    print(f"Output for visualizations will be saved to: {paths['visualizations_output']}")
+    
+    print("\n1. Starting data loading and merging...")
+    merged_data = load_and_merge_data(paths)
+    if merged_data is None or merged_data.empty:
+        print("Critical Error: Failed to load/merge data or data is empty. Exiting.")
+        exit(1) 
+    print(f"   - Merged data shape: {merged_data.shape}")
 
-    if not transformers_list:
-        print("Lỗi: Không có đặc trưng để tiền xử lý.")
-        exit()
+    print("\n2. Starting advanced feature engineering...")
+    processed_data = advanced_feature_engineering(merged_data.copy()) 
+    if processed_data is None or processed_data.empty:
+        print("Critical Error: Failed to process data or data is empty. Exiting.")
+        exit(1)
+    print(f"   - Processed data shape: {processed_data.shape}")
+    
+    if 'Log_TransferValue' not in processed_data.columns:
+        print("Critical Error: Target 'Log_TransferValue' not found post-processing. Exiting.")
+        exit(1)
 
-    preprocessor = ColumnTransformer(transformers=transformers_list, remainder='passthrough')
+    print("\n3. Starting data preparation for model...")
+    X, y, scaler, le_dict, feature_names = prepare_model_data(processed_data) 
+    print(f"   - Model features (X) shape: {X.shape}, Target (y) shape: {y.shape}")
+    print(f"   - Feature names for model: {feature_names}")
 
-    # --- 3f. Apply Preprocessing ---
-    X_train_processed = preprocessor.fit_transform(X_train)
-    X_test_processed = preprocessor.transform(X_test)
+    print("\n4. Starting model training...")
+    model = train_model(X, y) 
+    
+    print("\n5. Evaluating model...")
+    y_pred = model.predict(X) 
+    r2 = r2_score(y, y_pred)
+    mse = mean_squared_error(y, y_pred)
+    print(f"   - R² score (on full processed data): {r2:.3f}")
+    print(f"   - MSE (on full processed data): {mse:.3f}")
+    
+    # --- BẮT ĐẦU PHẦN TRỰC QUAN HÓA (LƯU VÀO THƯ MỤC visualizations_output) ---
+    print("\n6. Generating and saving visualizations...")
+    
+    sns.set_theme(style="whitegrid", palette="muted")
+    plt.rcParams['font.family'] = 'sans-serif' 
 
-    # Get feature names
-    all_feature_names = []
-    if numerical_features:
-        all_feature_names.extend(numerical_features)
-    if categorical_features:
-        try:
-            ohe_feature_names = preprocessor.named_transformers_['cat'].get_feature_names_out(categorical_features)
-            all_feature_names.extend(list(ohe_feature_names))
-        except Exception as e:
-            num_numeric = len(numerical_features) if numerical_features else 0
-            num_ohe = X_train_processed.shape[1] - num_numeric
-            all_feature_names.extend([f'cat_{i}' for i in range(num_ohe)])
+    # 6.1 Biểu đồ Giá trị Thực tế vs. Giá trị Dự đoán
+    plt.figure(figsize=(10, 10))
+    plt.scatter(y, y_pred, alpha=0.6, edgecolors='k', s=70, label="Dữ liệu điểm")
+    min_val = min(y.min(), y_pred.min())
+    max_val = max(y.max(), y_pred.max())
+    plt.plot([min_val, max_val], [min_val, max_val], 'r--', lw=2.5, label="Dự đoán hoàn hảo (y=x)")
+    plt.xlabel('Giá trị Thực tế (Log_TransferValue)', fontsize=14, labelpad=30) 
+    plt.ylabel('Giá trị Dự đoán (Log_TransferValue)', fontsize=14, labelpad=30) 
+    plt.title('Giá trị Thực tế vs. Giá trị Dự đoán', fontsize=16, fontweight='bold')
+    plt.text(0.05, 0.95, f'$R^2 = {r2:.3f}$\nMSE = {mse:.3f}', 
+                transform=plt.gca().transAxes, fontsize=12,
+                verticalalignment='top', bbox=dict(boxstyle='round,pad=0.5', fc='wheat', alpha=0.5))
+    plt.legend(fontsize=12, loc='lower right')
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.savefig(os.path.join(paths['visualizations_output'], 'actual_vs_predicted.png'))
+    plt.close() 
+    print(f"   - Saved: actual_vs_predicted.png to {paths['visualizations_output']}")
 
-    X_train_processed_df = pd.DataFrame(X_train_processed, columns=all_feature_names, index=X_train.index)
-    X_test_processed_df = pd.DataFrame(X_test_processed, columns=all_feature_names, index=X_test.index)
+    # 6.2 Biểu đồ Phần dư
+    residuals = y - y_pred
+    plt.figure(figsize=(12, 7))
+    sns.scatterplot(x=y_pred, y=residuals, alpha=0.6, edgecolor='k', s=70, hue=residuals, palette="coolwarm", legend=False)
+    plt.axhline(y=0, color='black', linestyle='--', lw=2)
+    plt.xlabel('Giá trị Dự đoán (Log_TransferValue)', fontsize=14, labelpad=30) 
+    plt.ylabel('Phần dư (Lỗi = Thực tế - Dự đoán)', fontsize=14, labelpad=30) 
+    plt.title('Biểu đồ Phần dư', fontsize=16, fontweight='bold')
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.savefig(os.path.join(paths['visualizations_output'], 'residual_plot.png'))
+    plt.close()
+    print(f"   - Saved: residual_plot.png to {paths['visualizations_output']}")
 
-    print("Tiền xử lý hoàn tất.")
-
-except Exception as e:
-    print(f"Đã xảy ra lỗi trong Bước 3: {e}")
-    import traceback
-    traceback.print_exc()
-    exit()
-
-# --- Step 4: Model Training & Evaluation ---
-print("\nBước 4: Huấn luyện và Đánh giá Mô hình...")
-try:
-    ridge_model = Ridge(alpha=1.0, random_state=42)
-    rf_model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1, max_depth=15, min_samples_split=5)
-
-    models = {"Ridge Regression": ridge_model, "Random Forest": rf_model}
-    results = {}
-
-    for name, model in models.items():
-        print(f"  Huấn luyện mô hình: {name}...")
-        model.fit(X_train_processed_df, y_train)
-        print(f"  Dự đoán với mô hình: {name}...")
-        y_pred_log = model.predict(X_test_processed_df)
-        y_pred_original = np.expm1(y_pred_log) if target_variable == 'TargetValue_log' else np.exp(y_pred_log)
-        y_pred_original[y_pred_original < 0] = 0
-
-        print(f"  Đánh giá mô hình: {name}...")
-        r2 = r2_score(y_test_original, y_pred_original)
-        mae = mean_absolute_error(y_test_original, y_pred_original)
-        rmse = np.sqrt(mean_squared_error(y_test_original, y_pred_original))
-        results[name] = {'R2': r2, 'MAE': mae, 'RMSE': rmse}
-        print(f"  Kết quả {name}: R2={r2:.4f}, MAE={mae:.4f}M EUR, RMSE={rmse:.4f}M EUR")
-
-except Exception as e:
-    print(f"Đã xảy ra lỗi trong Bước 4: {e}")
-    import traceback
-    traceback.print_exc()
-    exit()
-
-# --- Step 5: Display Results & Feature Importance ---
-print("\nBước 5: Hiển thị Kết quả...")
-try:
-    if results:
-        results_df = pd.DataFrame(results).T
-        results_df.index.name = 'Model'
-        print("\n--- So sánh Kết quả Đánh giá Mô hình ---")
-        print(results_df.to_markdown(numalign="left", stralign="left"))
+    # 6.3 Tầm quan trọng Đặc trưng của XGBoost
+    if hasattr(model, 'feature_importances_') and feature_names and len(feature_names) == X.shape[1]:
+        importances = model.feature_importances_
+        feature_importance_df = pd.DataFrame({'feature': feature_names, 'importance': importances})
+        feature_importance_df = feature_importance_df.sort_values('importance', ascending=False).reset_index(drop=True)
+        
+        plt.figure(figsize=(12, max(8, len(feature_names) * 0.5)))
+        sns.barplot(x='importance', y='feature', data=feature_importance_df, palette='viridis', edgecolor='black')
+        plt.xlabel("Mức độ quan trọng (Feature Importance Score)", fontsize=14, labelpad=30) 
+        plt.ylabel("Đặc trưng", fontsize=14, labelpad=30) 
+        plt.title("Tầm quan trọng của Đặc trưng (XGBoost)", fontsize=16, fontweight='bold')
+        plt.xticks(fontsize=11)
+        plt.yticks(fontsize=11)
+        plt.grid(axis='x', linestyle='--', alpha=0.7)
+        for index, value in enumerate(feature_importance_df['importance']):
+            plt.text(value + 0.001, index, f'{value:.3f}', va='center', fontsize=9)
+        plt.tight_layout()
+        plt.savefig(os.path.join(paths['visualizations_output'], 'xgb_feature_importance.png'))
+        plt.close()
+        print(f"   - Saved: xgb_feature_importance.png to {paths['visualizations_output']}")
     else:
-        print("\nKhông có kết quả đánh giá để hiển thị.")
+        print("   - Warning: Không thể tạo biểu đồ feature importance của XGBoost.")
 
-    if "Random Forest" in models and "Random Forest" in results and all_feature_names:
-        rf_importances = pd.Series(rf_model.feature_importances_, index=all_feature_names)
-        rf_importances = rf_importances.sort_values(ascending=False)
-        print("\n--- Mức độ quan trọng của Đặc trưng (Random Forest - Top 20) ---")
-        print(rf_importances.head(20).to_markdown(numalign="left", stralign="left"))
+    # 6.4 Giải thích bằng SHAP Summary Plot
+    if X.shape[1] == len(feature_names) and len(feature_names) > 0 :
+        X_shap_df = pd.DataFrame(X, columns=feature_names)
+        try:
+            explainer = shap.TreeExplainer(model)
+            shap_values = explainer.shap_values(X_shap_df) 
 
-except Exception as e:
-    print(f"Đã xảy ra lỗi trong Bước 5: {e}")
-    import traceback
-    traceback.print_exc()
+            plt.figure(figsize=(14, max(8, len(feature_names) * 0.4))) # Đặt kích thước figure trước khi gọi SHAP
+            shap.summary_plot(shap_values, X_shap_df, plot_type="dot", show=False, color_bar_label='Giá trị Đặc trưng (Cao/Thấp)')
+            fig = plt.gcf() 
+            fig.suptitle("SHAP Summary Plot - Ảnh hưởng & Tầm quan trọng của Đặc trưng", fontsize=16, fontweight='bold', y=1.0) 
+            plt.subplots_adjust(top=0.9) 
+            plt.tight_layout(pad=1.5, rect=[0, 0, 1, 0.95]) 
+            plt.savefig(os.path.join(paths['visualizations_output'], 'shap_summary_plot_dot.png'), bbox_inches='tight')
+            plt.close(fig) 
+            print(f"   - Saved: shap_summary_plot_dot.png to {paths['visualizations_output']}")
+        except Exception as e_shap:
+            print(f"   - Lỗi khi tạo SHAP plot: {e_shap}")
+            traceback.print_exc()
+    else:
+        print("   - Warning: Không thể tạo DataFrame cho SHAP. SHAP plots skipped.")
+    
+    print("   - Visualizations generated and saved.")
 
-print("\n--- Hoàn thành ---")
+    # ... lưu model ...
+    print(f"\n7. Saving model and preprocessors to {paths['model_artifacts_output']}...")
+    joblib.dump(model, os.path.join(paths['model_artifacts_output'], 'optimized_xgb_model.pkl'))
+    if scaler: 
+        joblib.dump(scaler, os.path.join(paths['model_artifacts_output'], 'scaler.pkl'))
+    if le_dict : 
+        joblib.dump(le_dict, os.path.join(paths['model_artifacts_output'], 'label_encoders.pkl'))
+    if feature_names: 
+        joblib.dump(feature_names, os.path.join(paths['model_artifacts_output'], 'feature_names.pkl')) 
+    print(f"   - Model and preprocessors saved.")

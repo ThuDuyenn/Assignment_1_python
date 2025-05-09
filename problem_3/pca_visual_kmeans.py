@@ -8,8 +8,7 @@ from player_clustering_kmeans import cluster_players_kmeans, ensure_dir
 
 # --- Cấu hình ---
 PLAYER_COL = 'Name'
-CSV_RELATIVE_PATH = os.path.join('..', 'problem_1', 'results.csv')
-MAX_K_TO_TEST = 10
+CSV_RELATIVE_PATH = os.path.join('..', 'problem_1', 'results1.csv')
 PCA_COMPONENTS = 2
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,7 +25,7 @@ def visualize_pca_clusters(csv_path: str, player_col: str, max_k: int = 10, n_pc
     ensure_dir(OUTPUT_DIR_PCA)
 
     # --- 1. Thực hiện K-Means Clustering (Gọi hàm đã import) ---
-    df_clustered_sorted, scaler, features_scaled_df, numeric_cols = cluster_players_kmeans(csv_path, player_col, max_k)
+    df_clustered_sorted, scaler, features_scaled_df, numeric_cols = cluster_players_kmeans(csv_path, player_col)
 
     # Lấy số cụm tối ưu đã được chọn trong hàm K-Means từ kết quả trả về
     optimal_k = df_clustered_sorted['Cluster'].nunique()
@@ -75,7 +74,7 @@ def visualize_pca_clusters(csv_path: str, player_col: str, max_k: int = 10, n_pc
 
 
 if __name__ == '__main__':
-    final_data_with_pca = visualize_pca_clusters(CSV_RELATIVE_PATH, PLAYER_COL, MAX_K_TO_TEST, PCA_COMPONENTS)
+    final_data_with_pca = visualize_pca_clusters(CSV_RELATIVE_PATH, PLAYER_COL, PCA_COMPONENTS)
 
     if final_data_with_pca is not None:
         print("\n[PCA Viz] Ví dụ một vài cầu thủ (bao gồm tọa độ PCA):")

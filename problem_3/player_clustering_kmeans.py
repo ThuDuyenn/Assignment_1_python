@@ -10,7 +10,6 @@ import seaborn as sns
 # --- Cấu hình ---
 PLAYER_COL = 'Name'
 CSV_RELATIVE_PATH = os.path.join('..', 'problem_1', 'results1.csv')
-MAX_K_TO_TEST = 15
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_folder_name = 'kmeans_analysis_results'
@@ -21,15 +20,15 @@ def ensure_dir(path: str):
     os.makedirs(path, exist_ok=True)
 
 # --- Hàm chính ---
-def cluster_players_kmeans(csv_path: str, player_col: str, max_k: int = 10):
+def cluster_players_kmeans(csv_path: str, player_col: str):
     # --- 1. Nạp dữ liệu ---
     current_script_dir = os.path.dirname(os.path.abspath(__file__))
     absolute_csv_path = os.path.join(current_script_dir, csv_path)
     df = pd.read_csv(absolute_csv_path)
 
     # --- 2. Chuẩn bị dữ liệu ---
-    # Chọn các cột số để phân cụm
-    numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+    all_numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+    numeric_cols = [col for col in all_numeric_cols if col != 'Age']
     features_df = df[numeric_cols].copy()
 
     # Xử lý giá trị thiếu (NaN) bằng cách thay thế bằng giá trị trung bình của cột
@@ -44,7 +43,7 @@ def cluster_players_kmeans(csv_path: str, player_col: str, max_k: int = 10):
 
     # --- 4. Xác định số cụm tối ưu (K) bằng phương pháp Elbow ---
     wcss = [] # Within-Cluster Sum of Squares
-    possible_k_values = range(3, max_k + 1)
+    possible_k_values = range(3, 16)
 
     for k in possible_k_values:
         kmeans_model = KMeans(n_clusters=k, init='k-means++', n_init='auto', random_state=42)
@@ -70,12 +69,12 @@ def cluster_players_kmeans(csv_path: str, player_col: str, max_k: int = 10):
     optimal_k = None
     while optimal_k is None:
         try:
-            k_input = input(f"Dựa vào biểu đồ Elbow, hãy nhập số cụm tối ưu (K) bạn chọn (từ 1 đến {max_k}): ")
+            k_input = input(f"Dựa vào biểu đồ Elbow, hãy nhập số cụm tối ưu (K) bạn chọn (từ 1 đến {15}): ")
             k_chosen = int(k_input)
-            if 1 <= k_chosen <= max_k:
+            if 1 <= k_chosen <= 15:
                 optimal_k = k_chosen
             else:
-                print(f"Vui lòng nhập một số nguyên từ 1 đến {max_k}.")
+                print(f"Vui lòng nhập một số nguyên từ 1 đến {15}.")
         except ValueError:
             print("Đầu vào không hợp lệ. Vui lòng nhập một số nguyên.")
 
@@ -122,7 +121,7 @@ def cluster_players_kmeans(csv_path: str, player_col: str, max_k: int = 10):
 
 # --- Main Execution ---
 if __name__ == '__main__':
-    clustered_data, _, _, numeric_cols_list = cluster_players_kmeans(CSV_RELATIVE_PATH, PLAYER_COL, MAX_K_TO_TEST)
+    clustered_data, _, _, numeric_cols_list = cluster_players_kmeans(CSV_RELATIVE_PATH, PLAYER_COL)
 
     if clustered_data is not None:
         print("\nVí dụ một vài cầu thủ từ mỗi cụm:")

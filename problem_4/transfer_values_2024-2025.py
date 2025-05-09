@@ -77,11 +77,9 @@ def save_data(df: pd.DataFrame, full_path: str, output_folder: str) -> bool:
 # --- Scraper Function ---
 PlayerData = Dict[Tuple[str, str], Dict[str, Any]]
 
-def scrape_transfer_data(driver: WebDriver, config: Dict[str, Any]) -> Optional[PlayerData]:
+def scrape_transfer_data(driver: WebDriver, config: Dict[str, Any]):
     player_transfer_values: PlayerData = {}
     page_num = 1
-    max_page_retries = 2
-    max_stale_retries = 3
 
     transfer_url = config['scraping']['transfer_url']
     wait_time = config['scraping']['wait_time_seconds']
@@ -104,14 +102,10 @@ def scrape_transfer_data(driver: WebDriver, config: Dict[str, Any]) -> Optional[
             table_body = soup.select_one(selectors['player_table'])
            
             if not table_body:
-                print(f"Error: Player table body selector '{selectors['player_table']}' not found on page {page_num}. Stopping scrape.")
                 break 
 
             rows = table_body.select(selectors['player_row'])
             
-            if not rows:
-                print(f"Warning: No player rows found using selector '{selectors['player_row']}' on page {page_num}. Checking for next page.")
-               
             # --- Extract data from rows ---
             players_added_on_page = 0
             for row_index, row in enumerate(rows):
@@ -132,7 +126,6 @@ def scrape_transfer_data(driver: WebDriver, config: Dict[str, Any]) -> Optional[
                         'Position': safe_get_text_transfer(row, selectors['position']),
                         'Skill': safe_get_numeric(safe_get_text_transfer(row, selectors['skill'])),
                         'Potential': safe_get_numeric(safe_get_text_transfer(row, selectors['potential'])),
-                        'TransferValueRaw': etv_str,
                         target_variable: clean_transfer_value(etv_str)
                     }
                     players_added_on_page += 1
@@ -189,13 +182,10 @@ def get_valid_players_from_part1(config: Dict[str, Any]) -> Set[str]:
 
     if not df_filtered.empty:
         valid_players = set(df_filtered[player_col].astype(str).str.strip().unique())
-        print(f"Found {len(valid_players)} players with > {min_minutes} minutes.")
-    else:
-        print(f"No players found with > {min_minutes} minutes.")
     
     return valid_players
 
-def process_transfer_data(scraped_data: PlayerData, config: Dict[str, Any]) -> Optional[pd.DataFrame]:
+def process_transfer_data(scraped_data: PlayerData, config: Dict[str, Any]):
     if not scraped_data:  
         return None
 

@@ -1,6 +1,6 @@
 {
   "paths": {
-    "part1_results_relative": "../problem_1/results.csv",
+    "part1_results_relative": "../problem_1/results1.csv",
     "output_folder": "OUTPUT",
     "raw_data_filename": "raw_data.csv",
     "transfer_value_output_filename": "player_transfer_values.csv",
