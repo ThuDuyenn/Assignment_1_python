@@ -304,27 +304,6 @@ if __name__ == "__main__":
     else:
         print("   - Warning: Không thể tạo biểu đồ feature importance của XGBoost.")
 
-    # 6.4 Giải thích bằng SHAP Summary Plot
-    if X.shape[1] == len(feature_names) and len(feature_names) > 0 :
-        X_shap_df = pd.DataFrame(X, columns=feature_names)
-        try:
-            explainer = shap.TreeExplainer(model)
-            shap_values = explainer.shap_values(X_shap_df) 
-
-            plt.figure(figsize=(14, max(8, len(feature_names) * 0.4))) # Đặt kích thước figure trước khi gọi SHAP
-            shap.summary_plot(shap_values, X_shap_df, plot_type="dot", show=False, color_bar_label='Giá trị Đặc trưng (Cao/Thấp)')
-            fig = plt.gcf() 
-            fig.suptitle("SHAP Summary Plot - Ảnh hưởng & Tầm quan trọng của Đặc trưng", fontsize=16, fontweight='bold', y=1.0) 
-            plt.subplots_adjust(top=0.9) 
-            plt.tight_layout(pad=1.5, rect=[0, 0, 1, 0.95]) 
-            plt.savefig(os.path.join(paths['visualizations_output'], 'shap_summary_plot_dot.png'), bbox_inches='tight')
-            plt.close(fig) 
-            print(f"   - Saved: shap_summary_plot_dot.png to {paths['visualizations_output']}")
-        except Exception as e_shap:
-            print(f"   - Lỗi khi tạo SHAP plot: {e_shap}")
-            traceback.print_exc()
-    else:
-        print("   - Warning: Không thể tạo DataFrame cho SHAP. SHAP plots skipped.")
     
     print("   - Visualizations generated and saved.")
 
